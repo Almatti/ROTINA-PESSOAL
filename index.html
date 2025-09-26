@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="color-scheme" content="dark light" />
+  <meta name="description" content="Sistema de organização pessoal TDAH Friendly - Minha Rotina 360°" />
+  <title>Minha Rotina 360° — TDAH Friendly</title>
+
+  <!-- Ícone e manifest podem ser adicionados depois (PWA). -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📊</text></svg>" />
+  <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📊</text></svg>" />
+
+  <!-- CSS principal -->
+  <link rel="stylesheet" href="style.css" />
+
+  <!-- JS principal. Defer para carregar após HTML. -->
+  <script defer src="script.js"></script>
+
+  <!-- Fonte do sistema para desempenho e legibilidade -->
+  <style>
+    /* Fallback mínimo para visualização antes do style.css */
+    :root { 
+      --bg:#0b0f14; --surface:#111723; --text:#e6e6e6; --muted:#9aa3af; 
+      --accent:#f1c40f; --info:#6bcbff; --ok:#a6e3a1; --warn:#ffd166; --bad:#ef9a9a; 
+    }
+    html[data-theme="dark"] body{ background:var(--bg); color:var(--text); }
+    body{ margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,"Helvetica Neue",Arial; }
+    .app{ display:grid; grid-template-columns: 280px 1fr; min-height:100dvh; }
+    aside{ background:var(--surface); border-right:1px solid #1c2432; }
+    header{ position:sticky; top:0; background:var(--surface); border-bottom:1px solid #1c2432; z-index:10; }
+    nav a{ display:flex; align-items:center; gap:.75rem; padding:.75rem 1rem; color:var(--text); text-decoration:none; border-left:3px solid transparent; transition:all 0.2s ease; }
+    nav a[aria-current="page"]{ border-left-color:var(--accent); background:rgba(241,196,15,.08); }
+    .brand{ display:flex; align-items:center; gap:.5rem; padding:1rem; font-weight:700; letter-spacing:.3px; }
+    .brand .dot{ width:10px; height:10px; border-radius:50%; background:var(--accent); display:inline-block; }
+    .header-bar{ display:flex; gap:.5rem; padding:.5rem 1rem; align-items:center; justify-content:space-between; }
+    .header-actions{ display:flex; gap:.5rem; align-items:center; }
+    .btn{ padding:.6rem .9rem; border:1px solid #243046; background:#0f1622; color:var(--text); border-radius:.6rem; cursor:pointer; transition:all 0.2s ease; }
+    .btn.accent{ background:var(--accent); color:#111; border-color:transparent; }
+    .btn.ghost{ background:transparent; border-color:#243046; }
+    .main{ padding:1rem; }
+    .page{ display:none; max-width:1200px; margin:0 auto; width:100%; }
+    .page[aria-hidden="false"]{ display:block; }
+    .section-title{ font-size:1.25rem; margin:.2rem 0 1rem; }
+    .grid{ display:grid; gap:1rem; }
+    .grid.cards{ grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); }
+    .card{ background:var(--surface); border:1px solid #1c2432; border-radius:14px; padding:1rem; box-shadow:0 4px 12px rgba(0,0,0,0.1); }
+    .muted{ color:var(--muted); }
+    .kpi{ font-size:1.8rem; font-weight:700; }
+    .list{ display:flex; flex-direction:column; gap:.5rem; }
+    .item{ padding:.75rem 1rem; border:1px solid #1c2432; border-radius:12px; background:#0f1622; transition:all 0.2s ease; }
+    .toolbar{ display:flex; flex-wrap:wrap; gap:.5rem; margin: .5rem 0 1rem; }
+    .input, input, select, textarea{ background:#0f1622; color:var(--text); border:1px solid #26354f; border-radius:10px; padding:.6rem .8rem; transition:all 0.2s ease; }
+    .two{ display:grid; grid-template-columns: 1fr 380px; gap:1rem; }
+    @media (max-width: 980px){ .app{ grid-template-columns: 1fr; } aside{ position:sticky; top:0; z-index:20; } .two{ grid-template-columns:1fr; } }
+    .tag{ font-size:.75rem; padding:.2rem .5rem; border-radius:.5rem; border:1px solid #2b3a55; color:#b7c2d6; }
+    .ok{ color:#a6e3a1; } .warn{ color:#ffd166; } .bad{ color:#ef9a9a; }
+    .calendar{ display:grid; gap:.5rem; }
+    .calendar .week{ display:grid; grid-template-columns:repeat(7,1fr); gap:.5rem; }
+    .calendar .day{ border:1px dashed #2a3854; border-radius:10px; min-height:90px; padding:.5rem; position:relative; }
+    .sr-only{ position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
+    
+    /* Loading indicator */
+    .loading { display: inline-block; width: 20px; height: 20px; border: 3px solid rgba(255,255,255,.3); border-radius: 50%; border-top-color: var(--accent); animation: spin 1s ease-in-out infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    
+    /* Toast notifications */
+    .toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 1000; display: flex; flex-direction: column; gap: 10px; }
+    .toast { padding: 12px 16px; border-radius: 8px; background: var(--surface); border-left: 4px solid var(--accent); box-shadow: 0 4px 12px rgba(0,0,0,0.15); animation: toastSlideIn 0.3s ease; }
+    .toast.ok { border-left-color: var(--ok); }
+    .toast.warn { border-left-color: var(--warn); }
+    .toast.bad { border-left-color: var(--bad); }
+    @keyframes toastSlideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    
+    /* Focus mode styling */
+    .focus-mode { filter: brightness(0.9) contrast(1.1); }
+    .focus-mode .card { background: rgba(15, 22, 34, 0.9); }
+    
+    /* Reading mode styling */
+    .reading-mode { font-size: 1.1rem; line-height: 1.6; }
+    .reading-mode .card { background: rgba(17, 23, 35, 0.95); }
+  </style>
+</head>
+
+<body>
+  <a href="#conteudo" class="sr-only">Pular para o conteúdo</a>
+  <noscript>
+    <div style="padding:1rem;background:#ffd166;color:#111;text-align:center">
+      Este app precisa de JavaScript para funcionar por completo. Ative o JS para rotas, calendário, notificações e automações.
+    </div>
+  </noscript>
+
+  <div class="app" id="app" data-app>
+    <!-- ===================== SIDEBAR / NAV ===================== -->
+    <aside role="navigation" aria-label="Navegação principal">
+      <div class="brand" aria-label="Logo e nome do app">
+        <span class="dot" aria-hidden="true"></span>
+        <span>Minha Rotina 360°</span>
+      </div>
+
+      <nav id="nav">
+        <!-- DICA: a navegação é controlada por [data-route]. script.js alterna aria-current e aria-hidden. -->
+        <a href="#/hoje"        data-link data-route="hoje"        aria-current="page">🏠 Hoje</a>
+        <a href="#/planejador"  data-link data-route="planejador">🗓️ Planejador</a>
+        <a href="#/tarefas"     data-link data-route="tarefas">✅ Tarefas & Hábitos</a>
+        <a href="#/compromissos"data-link data-route="compromissos">📅 Compromissos</a>
+        <a href="#/saude"       data-link data-route="saude">❤️ Saúde</a>
+        <a href="#/ciclo"       data-link data-route="ciclo">🌸 Ciclo</a>
+        <a href="#/estudos"     data-link data-route="estudos">📚 Estudos</a>
+        <a href="#/academia"    data-link data-route="academia">🏋️ Academia</a>
+        <a href="#/trabalho"    data-link data-route="trabalho">💼 Trabalho</a>
+        <a href="#/casa"        data-link data-route="casa">🏠 Casa</a>
+        <a href="#/listas"      data-link data-route="listas">🛒 Listas</a>
+        <a href="#/financeiro"  data-link data-route="financeiro">💸 Financeiro</a>
+        <a href="#/devocional"  data-link data-route="devocional">🙏 Devocional</a>
+        <a href="#/config"      data-link data-route="config">⚙️ Configurações</a>
+      </nav>
+    </aside>
+
+    <!-- ===================== HEADER ===================== -->
+    <header role="banner">
+      <div class="header-bar" id="topbar">
+        <div class="header-actions" role="group" aria-label="Ações rápidas">
+          <button class="btn ghost" data-action="quick-add" title="Adicionar rápido (tarefa/compromisso)">＋ Adicionar</button>
+          <button class="btn ghost" data-action="focus-mode" aria-pressed="false" title="Modo Foco (TDAH)">🎯 Foco</button>
+          <button class="btn ghost" data-action="reading-mode" aria-pressed="false" title="Modo Leitura">📖 Leitura</button>
+        </div>
+        <div class="header-actions">
+          <input class="input" type="search" placeholder="Buscar tarefas, eventos..." aria-label="Busca global" id="globalSearch" />
+          <button class="btn" data-action="toggle-theme" title="Alternar tema">🌓 Tema</button>
+          <button class="btn accent" data-route="hoje" data-link title="Ir para Hoje">Hoje</button>
+        </div>
+      </div>
+    </header>
+
+    <!-- ===================== MAIN ===================== -->
+    <main id="conteudo" class="main" role="main">
+      <!-- ===== PÁGINA: HOJE ===== -->
+      <section class="page" data-route="hoje" aria-labelledby="h-title" aria-hidden="false">
+        <h1 id="h-title" class="section-title">Hoje - <span id="today-date"></span></h1>
+        <div class="grid cards">
+          <article class="card" aria-labelledby="h-tarefas-title">
+            <div class="muted">✅</div>
+            <h2 id="h-tarefas-title">Tarefas do dia</h2>
+            <div class="toolbar">
+              <button class="btn" data-open="modal-task">Nova tarefa</button>
+              <span class="tag">Atrasadas</span>
+              <span class="tag">Próximas 24h</span>
+            </div>
+            <div id="todayTasks" class="list" aria-live="polite">
+              <!-- script.js insere TaskCard aqui -->
+              <div class="muted">Sem tarefas por enquanto.</div>
+            </div>
+          </article>
+
+          <article class="card" aria-labelledby="h-compromissos-title">
+            <div class="muted">📅</div>
+            <h2 id="h-compromissos-title">Compromissos</h2>
+            <div class="toolbar">
+              <button class="btn" data-open="modal-event">Novo compromisso</button>
+              <a class="btn ghost" data-link data-route="compromissos" href="#/compromissos">Ver todos</a>
+            </div>
+            <div id="todayEvents" class="list" aria-live="polite">
+              <div class="muted">Nada marcado para hoje.</div>
+            </div>
+          </article>
+
+          <article class="card" aria-labelledby="h-remedios-title">
+            <div class="muted">💊</div>
+            <h2 id="h-remedios-title">Remédios (Hoje)</h2>
+            <div class="toolbar">
+              <button class="btn" data-open="modal-med">Adicionar remédio</button>
+            </div>
+            <div id="todayMeds" class="list" aria-live="polite">
+              <!-- Ritalina seed aparece aqui -->
+            </div>
+          </article>
+
+          <article class="card" aria-labelledby="h-pomodoro-title">
+            <div class="muted">⏱️</div>
+            <h2 id="h-pomodoro-title">Timer / Pomodoro</h2>
+            <div class="toolbar">
+              <button class="btn" data-action="pomodoro-start">Iniciar 25:00</button>
+              <button class="btn ghost" data-action="pomodoro-stop">Parar</button>
+              <button class="btn ghost" data-action="pomodoro-reset">Reset</button>
+            </div>
+            <div id="pomodoroStatus" class="kpi" aria-live="polite">25:00</div>
+            <div class="muted">Foco 25 min · Pausa 5 min</div>
+          </article>
+        </div>
+      </section>
+
+      <!-- ===== PÁGINA: PLANEJADOR (Calendário) ===== -->
+      <section class="page" data-route="planejador" aria-labelledby="p-title" aria-hidden="true">
+        <h1 id="p-title" class="section-title">Planejador — Calendário</h1>
+        <div class="two">
+          <div class="card">
+            <div class="toolbar">
+              <button class="btn" data-action="cal-prev">◀</button>
+              <div id="calLabel" class="muted">Mês/Ano</div>
+              <button class="btn" data-action="cal-next">▶</button>
+              <button class="btn ghost" data-action="cal-today">Hoje</button>
+              <button class="btn" data-open="modal-event">Novo evento</button>
+            </div>
+            <div class="calendar" id="calendar" role="grid" aria-labelledby="p-title">
+              <!-- script.js renderiza o mês em semanas (.week) e dias (.day) -->
+              <div class="muted">Carregando calendário…</div>
+            </div>
+          </div>
+          <aside class="card" aria-label="Eventos do dia selecionado">
+            <h2 id="day-events-title">Eventos do dia</h2>
+            <div id="dayEvents" class="list">
+              <div class="muted">Selecione um dia no calendário.</div>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <!-- ===== PÁGINA: TAREFAS & HÁBITOS ===== -->
+      <section class="page" data-route="tarefas" aria-labelledby="t-title" aria-hidden="true">
+        <h1 id="t-title" class="section-title">Tarefas & Hábitos</h1>
+        <div class="toolbar">
+          <button class="btn" data-open="modal-task">Nova tarefa</button>
+          <select id="taskFilter" class="input" aria-label="Filtro de tarefas">
+            <option value="all">Todas</option>
+            <option value="today">Hoje</option>
+            <option value="overdue">Atrasadas</option>
+            <option value="next24">Próx. 24h</option>
+            <option value="habits">Hábitos</option>
+            <option value="work">Trabalho</option>
+            <option value="study">Estudos</option>
+            <option value="home">Casa</option>
+            <option value="personal">Pessoal</option>
+          </select>
+        </div>
+        <div class="grid two-col" id="taskColumns">
+          <div class="card">
+            <h2>To-Do</h2>
+            <div id="taskList" class="list"></div>
+          </div>
+          <div class="card">
+            <h2>Concluídas</h2>
+            <div id="taskDone" class="list"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== PÁGINA: COMPROMISSOS ===== -->
+      <section class="page" data-route="compromissos" aria-labelledby="c-title" aria-hidden="true">
+        <h1 id="c-title" class="section-title">Compromissos</h1>
+        <div class="two">
+          <div class="card">
+            <div class="toolbar">
+              <button class="btn" data-open="modal-event">Novo compromisso</button>
+              <input class="input" id="eventSearch" type="search" placeholder="Buscar por título/local…" aria-label="Buscar compromisso" />
+            </div>
+            <div id="eventList" class="list" role="list">
+              <!-- script.js preenche lista -->
+            </div>
+          </div>
+          <aside class="card" aria-label="Detalhes do compromisso">
+            <h2>Detalhes</h2>
+            <div id="eventDetail" class="muted">Selecione um compromisso na lista para ver detalhes.</div>
+          </aside>
+        </div>
+      </section>
+
+      <!-- ===== PÁGINA: SAÚDE ===== -->
+      <section class="page" data-route="saude" aria-labelledby="s-title" aria-hidden="true">
+        <h1 id="s-title" class="section-title">Saúde</h1>
+        <div class="grid cards">
+          <article class="card">
+            <h2>Registrar Métricas</h2>
+            <div class="toolbar"><button class="btn" data-open="modal-health">Nova métrica</button></div>
+            <div id="healthList" class="list"></div>
+          </article>
+          <article class="card">
+            <h2>Gráficos rápidos</h2>
+            <div class="muted">(* script.js renderiza canvas de Peso, Glicose, SpO2, BPM *)</div>
+            <canvas id="chartPeso" width="600" height="220" aria-label="Gráfico de peso" role="img"></canvas>
+            <canvas id="chartGlicose" width="600" height="220" aria-label="Gráfico de glicose" role="img"></canvas>
+            <canvas id="chartSpO2" width="600" height="220" aria-label="Gráfico de saturação" role="img"></canvas>
+            <canvas id="chartBPM" width="600" height="220" aria-label="Gráfico de batimentos" role="img"></canvas>
+          </article>
+          <article class="card">
+            <h2>Medicações</h2>
+            <div class="toolbar">
+              <button class="btn" data-open="modal-med">Adicionar remédio</button>
+              <button class="btn ghost" data-action="med-schedule">Agendar lembretes</button>
+            </div>
+            <div id="medList" class="list"></div>
+          </article>
+        </div>
+      </section>
+
+      <!-- ===== PÁGINAS ESPECÍFICAS (demais categorias) ===== -->
+      <section class="page" data-route="ciclo" aria-labelledby="ci-title" aria-hidden="true">
+        <h1 id="ci-title" class="section-title">Ciclo</h1>
+        <div class="card">
+          <div class="toolbar">
+            <button class="btn" data-action="cycle-mark-period">Marcar início da menstruação</button>
+            <button class="btn ghost" data-action="cycle-add-symptom">Adicionar sintoma</button>
+          </div>
+          <div id="cycleCalendar" class="calendar">
+            <div class="muted">(* script.js mostra calendário com previsão e sintomas *)</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="page" data-route="estudos" aria-labelledby="e-title" aria-hidden="true">
+        <h1 id="e-title" class="section-title">Estudos</h1>
+        <div class="grid cards">
+          <article class="card">
+            <h2>Pomodoro de Estudos</h2>
+            <div class="toolbar">
+              <button class="btn" data-action="study-pomo-start">Iniciar</button>
+              <button class="btn ghost" data-action="study-pomo-stop">Parar</button>
+            </div>
+            <div id="studyTimer" class="kpi">25:00</div>
+          </article>
+          <article class="card">
+            <h2>Matérias & Sessões</h2>
+            <div class="toolbar"><button class="btn" data-open="modal-study">Nova sessão</button></div>
+            <div id="studyList" class="list"></div>
+          </article>
+        </div>
+      </section>
+
+      <section class="page" data-route="academia" aria-labelledby="a-title" aria-hidden="true">
+        <h1 id="a-title" class="section-title">Academia</h1>
+        <div class="grid cards">
+          <article class="card">
+            <h2>Treinos</h2>
+            <div class="toolbar"><button class="btn" data-open="modal-workout">Novo treino</button></div>
+            <div id="workoutList" class="list"></div>
+          </article>
+          <article class="card">
+            <h2>Calendário de Treinos</h2>
+            <div id="workoutCalendar" class="calendar"></div>
+          </article>
+        </div>
+      </section>
+
+      <section class="page" data-route="trabalho" aria-labelledby="w-title" aria-hidden="true">
+        <h1 id="w-title" class="section-title">Trabalho</h1>
+        <div class="grid two-col">
+          <article class="card">
+            <h2>Projetos</h2>
+            <div class="toolbar"><button class="btn" data-open="modal-project">Novo projeto</button></div>
+            <div id="projectList" class="list"></div>
+          </article>
+          <article class="card">
+            <h2>Próximos 7 dias</h2>
+            <div id="workNext7" class="list"></div>
+          </article>
+        </div>
+      </section>
+
+      <section class="page" data-route="casa" aria-labelledby="h-title2" aria-hidden="true">
+        <h1 id="h-title2" class="section-title">Casa</h1>
+        <div class="grid two-col">
+          <article class="card">
+            <h2>Afazeres domésticos</h2>
+            <div class="toolbar"><button class="btn" data-open="modal-chore">Novo afazer</button></div>
+            <div id="choreList" class="list"></div>
+          </article>
+          <article class="card">
+            <h2>Rotina semanal</h2>
+            <div id="choreWeek" class="list"></div>
+          </article>
+        </div>
+      </section>
+
+      <section class="page" data-route="listas" aria-labelledby="l-title" aria-hidden="true">
+        <h1 id="l-title" class="section-title">Listas</h1>
+        <div class="two">
+          <div class="card">
+            <div class="toolbar">
+              <button class="btn" data-open="modal-list">Nova lista</button>
+              <select id="listSelect" class="input" aria-label="Selecionar lista"></select>
+              <button class="btn ghost" data-action="list-export">Exportar</button>
+            </div>
+            <div id="listItems" class="list"></div>
+          </div>
+          <aside class="card">
+            <h2>Listas rápidas</h2>
+            <div class="list">
+              <button class="btn" data-action="use-template" data-tpl="mercado">+ Mercado</button>
+              <button class="btn" data-action="use-template" data-tpl="casa">+ Casa</button>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <section class="page" data-route="financeiro" aria-labelledby="f-title" aria-hidden="true">
+        <h1 id="f-title" class="section-title">Financeiro</h1>
+        <div class="two">
+          <div class="card">
+            <div class="toolbar">
+              <button class="btn" data-open="modal-fin">Nova transação</button>
+              <select id="finFilter" class="input" aria-label="Filtro de financeiro">
+                <option value="month">Este mês</option>
+                <option value="all">Tudo</option>
+                <option value="income">Entradas</option>
+                <option value="expense">Saídas</option>
+              </select>
+              <button class="btn ghost" data-action="fin-export">Exportar CSV</button>
+            </div>
+            <div id="finList" class="list"></div>
+          </div>
+          <aside class="card">
+            <h2>Resumo</h2>
+            <div class="kpi" id="finBalance">R$ 0,00</div>
+            <div class="muted">Saldo do período</div>
+          </aside>
+        </div>
+      </section>
+
+      <section class="page" data-route="devocional" aria-labelledby="d-title" aria-hidden="true">
+        <h1 id="d-title" class="section-title">Devocional</h1>
+        <div class="grid two-col">
+          <article class="card">
+            <h2>Entradas</h2>
+            <div class="toolbar"><button class="btn" data-open="modal-devo">Nova entrada</button></div>
+            <div id="devoList" class="list"></div>
+          </article>
+          <article class="card">
+            <h2>Gratidão</h2>
+            <div id="gratList" class="list"></div>
+          </article>
+        </div>
+      </section>
+
+      <section class="page" data-route="config" aria-labelledby="cfg-title" aria-hidden="true">
+        <h1 id="cfg-title" class="section-title">Configurações</h1>
+        <div class="grid cards">
+          <article class="card">
+            <h2>Preferências</h2>
+            <div class="list">
+              <label>Modo Foco (TDAH) <input type="checkbox" id="prefFocus" /></label>
+              <label>Modo Leitura <input type="checkbox" id="prefReading" /></label>
+              <label>Notificações <input type="checkbox" id="prefNotif" /></label>
+              <label>Som de alerta <input type="checkbox" id="prefSound" /></label>
+              <label>Dia inicia às <input type="number" id="prefStart" min="0" max="23" value="6" /></label>
+              <label>Dia termina às <input type="number" id="prefEnd" min="0" max="23" value="22" /></label>
+            </div>
+          </article>
+          <article class="card">
+            <h2>Backup</h2>
+            <div class="toolbar">
+              <button class="btn" data-action="export-json">Exportar JSON</button>
+              <input class="input" type="file" id="importFile" accept="application/json" />
+              <button class="btn ghost" data-action="import-json">Importar JSON</button>
+            </div>
+            <div class="muted">Faça backup dos seus dados e restaure quando precisar.</div>
+          </article>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- ===================== MODAIS ===================== -->
+  <dialog id="modal-task" aria-labelledby="mtitle-task">
+    <form method="dialog" id="formTask">
+      <h2 id="mtitle-task">Nova Tarefa</h2>
+      <label>Título <input name="title" required class="input" /></label>
+      <label>Notas <textarea name="notes" class="input"></textarea></label>
+      <label>Prazo <input type="date" name="due" class="input" /></label>
+      <label>Prioridade
+        <select name="priority" class="input">
+          <option value="med">Média</option>
+          <option value="high">Alta</option>
+          <option value="low">Baixa</option>
+        </select>
+      </label>
+      <label>Categoria
+        <select name="project" class="input">
+          <option value="work">Trabalho</option>
+          <option value="study">Estudos</option>
+          <option value="home">Casa</option>
+          <option value="personal">Pessoal</option>
+        </select>
+      </label>
+      <menu>
+        <button class="btn ghost" value="cancel">Cancelar</button>
+        <button class="btn accent" value="default">Salvar</button>
+      </menu>
+    </form>
+  </dialog>
+
+  <dialog id="modal-event" aria-labelledby="mtitle-event">
+    <form method="dialog" id="formEvent">
+      <h2 id="mtitle-event">Novo Compromisso</h2>
+      <label>Título <input name="title" required class="input" /></label>
+      <label>Local <input name="location" class="input" /></label>
+      <label>Início <input type="datetime-local" name="start" required class="input" /></label>
+      <label>Fim <input type="datetime-local" name="end" required class="input" /></label>
+      <label>Lembretes (min antes, separados por vírgula)
+        <input name="reminders" class="input" placeholder="15,5" />
+      </label>
+      <menu>
+        <button class="btn ghost" value="cancel">Cancelar</button>
+        <button class="btn accent" value="default">Salvar</button>
+      </menu>
+    </form>
+  </dialog>
+
+  <dialog id="modal-med" aria-labelledby="mtitle-med">
+    <form method="dialog" id="formMed">
+      <h2 id="mtitle-med">Adicionar Remédio</h2>
+      <label>Nome <input name="name" required class="input" /></label>
+      <label>Dose <input name="dose" class="input" placeholder="10 mg" /></label>
+      <label>Horários (HH:MM, vírgula) <input name="times" class="input" placeholder="08:00,13:00" /></label>
+      <label>Início <input type="date" name="startDate" class="input" /></label>
+      <label>Fim <input type="date" name="endDate" class="input" /></label>
+      <menu>
+        <button class="btn ghost" value="cancel">Cancelar</button>
+        <button class="btn accent" value="default">Salvar</button>
+      </menu>
+    </form>
+  </dialog>
+
+  <dialog id="modal-health" aria-labelledby="mtitle-health">
+    <form method="dialog" id="formHealth">
+      <h2 id="mtitle-health">Nova Métrica</h2>
+      <label>Data/Hora <input type="datetime-local" name="date" class="input" required /></label>
+      <label>Peso (kg) <input type="number" step="0.1" name="weight" class="input" /></label>
+      <label>Temperatura (°C) <input type="number" step="0.1" name="temp" class="input" /></label>
+      <label>Glicose (mg/dL) <input type="number" step="1" name="glucose" class="input" /></label>
+      <label>SpO₂ (%) <input type="number" step="1" name="spo2" class="input" /></label>
+      <label>BPM <input type="number" step="1" name="bpm" class="input" /></label>
+      <label>Pressão (SYS/DIA) <input name="bp" class="input" placeholder="120/80" /></label>
+      <menu>
+        <button class="btn ghost" value="cancel">Cancelar</button>
+        <button class="btn accent" value="default">Salvar</button>
+      </menu>
+    </form>
+  </dialog>
+
+  <dialog id="modal-study" aria-labelledby="mtitle-study">
+    <form method="dialog" id="formStudy">
+      <h2 id="mtitle-study">Nova Sessão de Estudo</h2>
+      <label>Matéria <input name="subject" required class="input" /></label>
+      <label>Duração (min) <input type="number" name="duration" value="25" class="input" /></label>
+      <label>Notas <textarea name="notes" class="input"></textarea></label>
+      <menu>
+        <button class="btn ghost" value="cancel">Cancelar</button>
+        <button class="btn accent" value="default">Salvar</button>
+      </menu>
+    </form>
+  </dialog>
+
+  <dialog id="modal-workout" aria-labelledby="mtitle-workout">
+    <form method="dialog" id="formWorkout">
+      <h2 id="mtitle-workout">Novo Treino</h2>
+      <label>Nome <input name="name" required class="input" /></label>
+      <label>Duração (min) <input type="number" name="duration" class="input" /></label>
+      <label>Exercícios <textarea name="exercises" class="input"></textarea></label>
+      <menu>
+        <button class="btn ghost" value="cancel">Cancelar</button>
+        <button class="btn accent" value="default">Salvar</button>
+      </menu>
+    </form>
+  </dialog>
+
+  <dialog id="modal-project" aria-labelledby="mtitle-project">
+    <form method="dialog" id="formProject">
+      <h2 id="mtitle-project">Novo Projeto</h2>
+      <label>Nome <input name="name" required class="input" /></label>
+      <label>Prazo <input type="date" name="due" class="input" /></label>
+      <menu>
+        <button class="btn ghost" value="cancel">Cancelar</button>
+        <button class="btn accent" value="default">Salvar</button>
+      </menu>
+    </form>
+  </dialog>
+
+  <dialog id="modal-chore" aria-labelledby="mtitle-chore">
+    <form method="dialog" id="formChore">
+      <h2 id="mtitle-chore">Novo Afazer</h2>
+      <label>Nome <input name="name" required class="input" /></label>
+      <label>Frequência <input name="freq" class="input" placeholder="diária, semanal, mensal" /></label>
+      <menu>
+        <button class="btn ghost" value="cancel">Cancelar</button>
+        <button class="btn accent" value="default">Salvar</button>
+      </menu>
+    </form>
+  </dialog>
+
+  <dialog id="modal-list" aria-labelledby="mtitle-list">
+    <form method="dialog" id="formList">
+      <h2 id="mtitle-list">Nova Lista</h2>
+      <label>Nome <input name="name" required class="input" /></label>
+      <menu>
+        <button class="btn ghost" value="cancel">Cancelar</button>
+        <button class="btn accent" value="default">Salvar</button>
+      </menu>
+    </form>
+  </dialog>
+
+  <dialog id="modal-fin" aria-labelledby="mtitle-fin">
+    <form method="dialog" id="formFin">
+      <h2 id="mtitle-fin">Nova Transação</h2>
+      <label>Descrição <input name="desc" required class="input" /></label>
+      <label>Valor <input type="number" step="0.01" name="amount" required class="input" /></label>
+      <label>Tipo
+        <select name="type" class="input">
+          <option value="expense">Saída</option>
+          <option value="income">Entrada</option>
+        </select>
+      </label>
+      <label>Data <input type="date" name="date" class="input" /></label>
+      <menu>
+        <button class="btn ghost" value="cancel">Cancelar</button>
+        <button class="btn accent" value="default">Salvar</button>
+      </menu>
+    </form>
+  </dialog>
+
+  <dialog id="modal-devo" aria-labelledby="mtitle-devo">
+    <form method="dialog" id="formDevo">
+      <h2 id="mtitle-devo">Nova Entrada Devocional</h2>
+      <label>Data <input type="date" name="date" class="input" /></label>
+      <label>Versículo <input name="verse" class="input" /></label>
+      <label>Reflexão <textarea name="reflection" class="input"></textarea></label>
+      <label>Gratidão <textarea name="gratitude" class="input"></textarea></label>
+      <menu>
+        <button class="btn ghost" value="cancel">Cancelar</button>
+        <button class="btn accent" value="default">Salvar</button>
+      </menu>
+    </form>
+  </dialog>
+
+  <!-- ===================== TOAST CONTAINER ===================== -->
+  <div class="toast-container" id="toastContainer" aria-live="polite" aria-atomic="true"></div>
+
+  <!-- ===================== SCRIPTS ===================== -->
+  <!-- NÃO ADICIONE MAIS SCRIPTS AQUI - já temos script.js com defer -->
+</body>
+</html>
