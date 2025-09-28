@@ -16,90 +16,30 @@
 
   <!-- JS principal. Defer para carregar após HTML. -->
   <script defer src="script.js"></script>
-
-  <!-- Fonte do sistema para desempenho e legibilidade -->
-  <style>
-    /* Fallback mínimo para visualização antes do style.css */
-    :root { 
-      --bg:#0b0f14; --surface:#111723; --text:#e6e6e6; --muted:#9aa3af; 
-      --accent:#f1c40f; --info:#6bcbff; --ok:#a6e3a1; --warn:#ffd166; --bad:#ef9a9a; 
-    }
-    html[data-theme="dark"] body{ background:var(--bg); color:var(--text); }
-    body{ margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,"Helvetica Neue",Arial; }
-    .app{ display:grid; grid-template-columns: 280px 1fr; min-height:100dvh; }
-    aside{ background:var(--surface); border-right:1px solid #1c2432; }
-    header{ position:sticky; top:0; background:var(--surface); border-bottom:1px solid #1c2432; z-index:10; }
-    nav a{ display:flex; align-items:center; gap:.75rem; padding:.75rem 1rem; color:var(--text); text-decoration:none; border-left:3px solid transparent; transition:all 0.2s ease; }
-    nav a[aria-current="page"]{ border-left-color:var(--accent); background:rgba(241,196,15,.08); }
-    .brand{ display:flex; align-items:center; gap:.5rem; padding:1rem; font-weight:700; letter-spacing:.3px; }
-    .brand .dot{ width:10px; height:10px; border-radius:50%; background:var(--accent); display:inline-block; }
-    .header-bar{ display:flex; gap:.5rem; padding:.5rem 1rem; align-items:center; justify-content:space-between; }
-    .header-actions{ display:flex; gap:.5rem; align-items:center; }
-    .btn{ padding:.6rem .9rem; border:1px solid #243046; background:#0f1622; color:var(--text); border-radius:.6rem; cursor:pointer; transition:all 0.2s ease; }
-    .btn.accent{ background:var(--accent); color:#111; border-color:transparent; }
-    .btn.ghost{ background:transparent; border-color:#243046; }
-    .main{ padding:1rem; }
-    .page{ display:none; max-width:1200px; margin:0 auto; width:100%; }
-    .page[aria-hidden="false"]{ display:block; }
-    .section-title{ font-size:1.25rem; margin:.2rem 0 1rem; }
-    .grid{ display:grid; gap:1rem; }
-    .grid.cards{ grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); }
-    .card{ background:var(--surface); border:1px solid #1c2432; border-radius:14px; padding:1rem; box-shadow:0 4px 12px rgba(0,0,0,0.1); }
-    .muted{ color:var(--muted); }
-    .kpi{ font-size:1.8rem; font-weight:700; }
-    .list{ display:flex; flex-direction:column; gap:.5rem; }
-    .item{ padding:.75rem 1rem; border:1px solid #1c2432; border-radius:12px; background:#0f1622; transition:all 0.2s ease; }
-    .toolbar{ display:flex; flex-wrap:wrap; gap:.5rem; margin: .5rem 0 1rem; }
-    .input, input, select, textarea{ background:#0f1622; color:var(--text); border:1px solid #26354f; border-radius:10px; padding:.6rem .8rem; transition:all 0.2s ease; }
-    .two{ display:grid; grid-template-columns: 1fr 380px; gap:1rem; }
-    @media (max-width: 980px){ .app{ grid-template-columns: 1fr; } aside{ position:sticky; top:0; z-index:20; } .two{ grid-template-columns:1fr; } }
-    .tag{ font-size:.75rem; padding:.2rem .5rem; border-radius:.5rem; border:1px solid #2b3a55; color:#b7c2d6; }
-    .ok{ color:#a6e3a1; } .warn{ color:#ffd166; } .bad{ color:#ef9a9a; }
-    .calendar{ display:grid; gap:.5rem; }
-    .calendar .week{ display:grid; grid-template-columns:repeat(7,1fr); gap:.5rem; }
-    .calendar .day{ border:1px dashed #2a3854; border-radius:10px; min-height:90px; padding:.5rem; position:relative; }
-    .sr-only{ position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
-    
-    /* Loading indicator */
-    .loading { display: inline-block; width: 20px; height: 20px; border: 3px solid rgba(255,255,255,.3); border-radius: 50%; border-top-color: var(--accent); animation: spin 1s ease-in-out infinite; }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    
-    /* Toast notifications */
-    .toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 1000; display: flex; flex-direction: column; gap: 10px; }
-    .toast { padding: 12px 16px; border-radius: 8px; background: var(--surface); border-left: 4px solid var(--accent); box-shadow: 0 4px 12px rgba(0,0,0,0.15); animation: toastSlideIn 0.3s ease; }
-    .toast.ok { border-left-color: var(--ok); }
-    .toast.warn { border-left-color: var(--warn); }
-    .toast.bad { border-left-color: var(--bad); }
-    @keyframes toastSlideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-    
-    /* Focus mode styling */
-    .focus-mode { filter: brightness(0.9) contrast(1.1); }
-    .focus-mode .card { background: rgba(15, 22, 34, 0.9); }
-    
-    /* Reading mode styling */
-    .reading-mode { font-size: 1.1rem; line-height: 1.6; }
-    .reading-mode .card { background: rgba(17, 23, 35, 0.95); }
-  </style>
 </head>
 
 <body>
   <a href="#conteudo" class="sr-only">Pular para o conteúdo</a>
   <noscript>
-    <div style="padding:1rem;background:#ffd166;color:#111;text-align:center">
+    <div style="padding:1rem;background:#9021da;color:#fff;text-align:center">
       Este app precisa de JavaScript para funcionar por completo. Ative o JS para rotas, calendário, notificações e automações.
     </div>
   </noscript>
 
   <div class="app" id="app" data-app>
     <!-- ===================== SIDEBAR / NAV ===================== -->
-    <aside role="navigation" aria-label="Navegação principal">
+    <aside role="navigation" aria-label="Navegação principal" id="sidebar">
       <div class="brand" aria-label="Logo e nome do app">
         <span class="dot" aria-hidden="true"></span>
         <span>Minha Rotina 360°</span>
+        <button class="mobile-menu-toggle" id="mobileMenuToggle" aria-label="Fechar menu">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
       </div>
 
       <nav id="nav">
-        <!-- DICA: a navegação é controlada por [data-route]. script.js alterna aria-current e aria-hidden. -->
         <a href="#/hoje"        data-link data-route="hoje"        aria-current="page">🏠 Hoje</a>
         <a href="#/planejador"  data-link data-route="planejador">🗓️ Planejador</a>
         <a href="#/tarefas"     data-link data-route="tarefas">✅ Tarefas & Hábitos</a>
@@ -121,6 +61,11 @@
     <header role="banner">
       <div class="header-bar" id="topbar">
         <div class="header-actions" role="group" aria-label="Ações rápidas">
+          <button class="mobile-menu-toggle" id="mobileMenuToggleOpen" aria-label="Abrir menu">
+            <span></span>
+            <span></span>
+            <span></span>
+          </button>
           <button class="btn ghost" data-action="quick-add" title="Adicionar rápido (tarefa/compromisso)">＋ Adicionar</button>
           <button class="btn ghost" data-action="focus-mode" aria-pressed="false" title="Modo Foco (TDAH)">🎯 Foco</button>
           <button class="btn ghost" data-action="reading-mode" aria-pressed="false" title="Modo Leitura">📖 Leitura</button>
@@ -148,7 +93,6 @@
               <span class="tag">Próximas 24h</span>
             </div>
             <div id="todayTasks" class="list" aria-live="polite">
-              <!-- script.js insere TaskCard aqui -->
               <div class="muted">Sem tarefas por enquanto.</div>
             </div>
           </article>
@@ -203,7 +147,6 @@
               <button class="btn" data-open="modal-event">Novo evento</button>
             </div>
             <div class="calendar" id="calendar" role="grid" aria-labelledby="p-title">
-              <!-- script.js renderiza o mês em semanas (.week) e dias (.day) -->
               <div class="muted">Carregando calendário…</div>
             </div>
           </div>
@@ -293,7 +236,7 @@
         </div>
       </section>
 
-      <!-- ===== PÁGINAS ESPECÍFICAS (demais categorias) ===== -->
+      <!-- ===== PÁGINA: CICLO ===== -->
       <section class="page" data-route="ciclo" aria-labelledby="ci-title" aria-hidden="true">
         <h1 id="ci-title" class="section-title">Ciclo</h1>
         <div class="card">
@@ -307,6 +250,7 @@
         </div>
       </section>
 
+      <!-- ===== PÁGINA: ESTUDOS ===== -->
       <section class="page" data-route="estudos" aria-labelledby="e-title" aria-hidden="true">
         <h1 id="e-title" class="section-title">Estudos</h1>
         <div class="grid cards">
@@ -326,6 +270,7 @@
         </div>
       </section>
 
+      <!-- ===== PÁGINA: ACADEMIA ===== -->
       <section class="page" data-route="academia" aria-labelledby="a-title" aria-hidden="true">
         <h1 id="a-title" class="section-title">Academia</h1>
         <div class="grid cards">
@@ -341,6 +286,7 @@
         </div>
       </section>
 
+      <!-- ===== PÁGINA: TRABALHO ===== -->
       <section class="page" data-route="trabalho" aria-labelledby="w-title" aria-hidden="true">
         <h1 id="w-title" class="section-title">Trabalho</h1>
         <div class="grid two-col">
@@ -356,6 +302,7 @@
         </div>
       </section>
 
+      <!-- ===== PÁGINA: CASA ===== -->
       <section class="page" data-route="casa" aria-labelledby="h-title2" aria-hidden="true">
         <h1 id="h-title2" class="section-title">Casa</h1>
         <div class="grid two-col">
@@ -365,94 +312,138 @@
             <div id="choreList" class="list"></div>
           </article>
           <article class="card">
-            <h2>Rotina semanal</h2>
-            <div id="choreWeek" class="list"></div>
+            <h2>Lista de Compras</h2>
+            <div class="toolbar"><button class="btn" data-open="modal-shopping">Novo item</button></div>
+            <div id="shoppingList" class="list"></div>
           </article>
         </div>
       </section>
 
+      <!-- ===== PÁGINA: LISTAS ===== -->
       <section class="page" data-route="listas" aria-labelledby="l-title" aria-hidden="true">
         <h1 id="l-title" class="section-title">Listas</h1>
-        <div class="two">
-          <div class="card">
-            <div class="toolbar">
-              <button class="btn" data-open="modal-list">Nova lista</button>
-              <select id="listSelect" class="input" aria-label="Selecionar lista"></select>
-              <button class="btn ghost" data-action="list-export">Exportar</button>
-            </div>
-            <div id="listItems" class="list"></div>
-          </div>
-          <aside class="card">
-            <h2>Listas rápidas</h2>
-            <div class="list">
-              <button class="btn" data-action="use-template" data-tpl="mercado">+ Mercado</button>
-              <button class="btn" data-action="use-template" data-tpl="casa">+ Casa</button>
-            </div>
-          </aside>
-        </div>
-      </section>
-
-      <section class="page" data-route="financeiro" aria-labelledby="f-title" aria-hidden="true">
-        <h1 id="f-title" class="section-title">Financeiro</h1>
-        <div class="two">
-          <div class="card">
-            <div class="toolbar">
-              <button class="btn" data-open="modal-fin">Nova transação</button>
-              <select id="finFilter" class="input" aria-label="Filtro de financeiro">
-                <option value="month">Este mês</option>
-                <option value="all">Tudo</option>
-                <option value="income">Entradas</option>
-                <option value="expense">Saídas</option>
-              </select>
-              <button class="btn ghost" data-action="fin-export">Exportar CSV</button>
-            </div>
-            <div id="finList" class="list"></div>
-          </div>
-          <aside class="card">
-            <h2>Resumo</h2>
-            <div class="kpi" id="finBalance">R$ 0,00</div>
-            <div class="muted">Saldo do período</div>
-          </aside>
-        </div>
-      </section>
-
-      <section class="page" data-route="devocional" aria-labelledby="d-title" aria-hidden="true">
-        <h1 id="d-title" class="section-title">Devocional</h1>
-        <div class="grid two-col">
-          <article class="card">
-            <h2>Entradas</h2>
-            <div class="toolbar"><button class="btn" data-open="modal-devo">Nova entrada</button></div>
-            <div id="devoList" class="list"></div>
-          </article>
-          <article class="card">
-            <h2>Gratidão</h2>
-            <div id="gratList" class="list"></div>
-          </article>
-        </div>
-      </section>
-
-      <section class="page" data-route="config" aria-labelledby="cfg-title" aria-hidden="true">
-        <h1 id="cfg-title" class="section-title">Configurações</h1>
         <div class="grid cards">
           <article class="card">
-            <h2>Preferências</h2>
-            <div class="list">
-              <label>Modo Foco (TDAH) <input type="checkbox" id="prefFocus" /></label>
-              <label>Modo Leitura <input type="checkbox" id="prefReading" /></label>
-              <label>Notificações <input type="checkbox" id="prefNotif" /></label>
-              <label>Som de alerta <input type="checkbox" id="prefSound" /></label>
-              <label>Dia inicia às <input type="number" id="prefStart" min="0" max="23" value="6" /></label>
-              <label>Dia termina às <input type="number" id="prefEnd" min="0" max="23" value="22" /></label>
+            <h2>Lista de Compras</h2>
+            <div class="toolbar">
+              <button class="btn" data-open="modal-shopping">Novo item</button>
+              <button class="btn ghost" data-action="clear-shopping">Limpar lista</button>
+            </div>
+            <div id="shoppingListFull" class="list"></div>
+          </article>
+          <article class="card">
+            <h2>Lista de Desejos</h2>
+            <div class="toolbar">
+              <button class="btn" data-open="modal-wishlist">Novo desejo</button>
+            </div>
+            <div id="wishList" class="list"></div>
+          </article>
+          <article class="card">
+            <h2>Lista de Filmes/Séries</h2>
+            <div class="toolbar">
+              <button class="btn" data-open="modal-media">Novo item</button>
+            </div>
+            <div id="mediaList" class="list"></div>
+          </article>
+        </div>
+      </section>
+
+      <!-- ===== PÁGINA: FINANCEIRO ===== -->
+      <section class="page" data-route="financeiro" aria-labelledby="f-title" aria-hidden="true">
+        <h1 id="f-title" class="section-title">Financeiro</h1>
+        <div class="grid cards">
+          <article class="card">
+            <h2>Resumo Financeiro</h2>
+            <div class="toolbar">
+              <button class="btn" data-open="modal-transaction">Nova transação</button>
+              <button class="btn ghost" data-open="modal-budget">Definir orçamento</button>
+            </div>
+            <div class="finance-summary">
+              <div class="finance-item">
+                <span class="finance-label">Saldo Atual</span>
+                <span class="finance-value" id="currentBalance">R$ 0,00</span>
+              </div>
+              <div class="finance-item">
+                <span class="finance-label">Receitas do Mês</span>
+                <span class="finance-value ok" id="monthlyIncome">R$ 0,00</span>
+              </div>
+              <div class="finance-item">
+                <span class="finance-label">Despesas do Mês</span>
+                <span class="finance-value bad" id="monthlyExpenses">R$ 0,00</span>
+              </div>
+            </div>
+          </article>
+          <article class="card">
+            <h2>Transações Recentes</h2>
+            <div class="toolbar">
+              <select id="transactionFilter" class="input">
+                <option value="all">Todas</option>
+                <option value="income">Receitas</option>
+                <option value="expense">Despesas</option>
+              </select>
+            </div>
+            <div id="transactionList" class="list"></div>
+          </article>
+          <article class="card">
+            <h2>Orçamentos</h2>
+            <div id="budgetList" class="list"></div>
+          </article>
+        </div>
+      </section>
+
+      <!-- ===== PÁGINA: DEVOCIONAL ===== -->
+      <section class="page" data-route="devocional" aria-labelledby="d-title" aria-hidden="true">
+        <h1 id="d-title" class="section-title">Devocional</h1>
+        <div class="grid cards">
+          <article class="card">
+            <h2>Leitura Diária</h2>
+            <div class="toolbar">
+              <button class="btn" data-open="modal-devotional">Registrar leitura</button>
+            </div>
+            <div id="devotionalList" class="list"></div>
+          </article>
+          <article class="card">
+            <h2>Orações</h2>
+            <div class="toolbar">
+              <button class="btn" data-open="modal-prayer">Nova oração</button>
+            </div>
+            <div id="prayerList" class="list"></div>
+          </article>
+        </div>
+      </section>
+
+      <!-- ===== PÁGINA: CONFIGURAÇÕES ===== -->
+      <section class="page" data-route="config" aria-labelledby="config-title" aria-hidden="true">
+        <h1 id="config-title" class="section-title">Configurações</h1>
+        <div class="grid cards">
+          <article class="card">
+            <h2>Aparência</h2>
+            <div class="toolbar">
+              <button class="btn" data-action="toggle-theme">Alternar Tema</button>
+              <select id="accentColor" class="input">
+                <option value="purple">Roxo</option>
+                <option value="blue">Azul</option>
+                <option value="green">Verde</option>
+                <option value="pink">Rosa</option>
+              </select>
+            </div>
+          </article>
+          <article class="card">
+            <h2>Notificações</h2>
+            <div class="toolbar">
+              <label class="checkbox">
+                <input type="checkbox" id="notificationsEnabled" checked>
+                <span>Ativar notificações</span>
+              </label>
             </div>
           </article>
           <article class="card">
             <h2>Backup</h2>
             <div class="toolbar">
-              <button class="btn" data-action="export-json">Exportar JSON</button>
-              <input class="input" type="file" id="importFile" accept="application/json" />
-              <button class="btn ghost" data-action="import-json">Importar JSON</button>
+              <button class="btn" data-action="export-data">Exportar Dados</button>
+              <button class="btn ghost" data-action="import-data">Importar Dados</button>
+              <button class="btn bad" data-action="clear-data">Limpar Todos os Dados</button>
             </div>
-            <div class="muted">Faça backup dos seus dados e restaure quando precisar.</div>
           </article>
         </div>
       </section>
@@ -460,181 +451,156 @@
   </div>
 
   <!-- ===================== MODAIS ===================== -->
-  <dialog id="modal-task" aria-labelledby="mtitle-task">
-    <form method="dialog" id="formTask">
-      <h2 id="mtitle-task">Nova Tarefa</h2>
-      <label>Título <input name="title" required class="input" /></label>
-      <label>Notas <textarea name="notes" class="input"></textarea></label>
-      <label>Prazo <input type="date" name="due" class="input" /></label>
-      <label>Prioridade
-        <select name="priority" class="input">
-          <option value="med">Média</option>
-          <option value="high">Alta</option>
+  
+  <!-- Modal Tarefa -->
+  <dialog id="modal-task">
+    <form id="formTask">
+      <h2>Nova Tarefa</h2>
+      <label>
+        Título
+        <input type="text" name="title" required>
+      </label>
+      <label>
+        Descrição
+        <textarea name="notes" rows="3"></textarea>
+      </label>
+      <label>
+        Data de Vencimento
+        <input type="date" name="due">
+      </label>
+      <label>
+        Prioridade
+        <select name="priority">
           <option value="low">Baixa</option>
+          <option value="medium">Média</option>
+          <option value="high">Alta</option>
         </select>
       </label>
-      <label>Categoria
-        <select name="project" class="input">
+      <label>
+        Projeto/Categoria
+        <select name="project">
+          <option value="personal">Pessoal</option>
           <option value="work">Trabalho</option>
           <option value="study">Estudos</option>
           <option value="home">Casa</option>
-          <option value="personal">Pessoal</option>
         </select>
       </label>
       <menu>
-        <button class="btn ghost" value="cancel">Cancelar</button>
-        <button class="btn accent" value="default">Salvar</button>
+        <button type="button" class="btn ghost" data-close>Cancelar</button>
+        <button type="submit" class="btn accent">Salvar</button>
       </menu>
     </form>
   </dialog>
 
-  <dialog id="modal-event" aria-labelledby="mtitle-event">
-    <form method="dialog" id="formEvent">
-      <h2 id="mtitle-event">Novo Compromisso</h2>
-      <label>Título <input name="title" required class="input" /></label>
-      <label>Local <input name="location" class="input" /></label>
-      <label>Início <input type="datetime-local" name="start" required class="input" /></label>
-      <label>Fim <input type="datetime-local" name="end" required class="input" /></label>
-      <label>Lembretes (min antes, separados por vírgula)
-        <input name="reminders" class="input" placeholder="15,5" />
+  <!-- Modal Compromisso -->
+  <dialog id="modal-event">
+    <form id="formEvent">
+      <h2>Novo Compromisso</h2>
+      <label>
+        Título
+        <input type="text" name="title" required>
+      </label>
+      <label>
+        Local
+        <input type="text" name="location">
+      </label>
+      <label>
+        Data e Hora de Início
+        <input type="datetime-local" name="start" required>
+      </label>
+      <label>
+        Data e Hora de Fim
+        <input type="datetime-local" name="end" required>
+      </label>
+      <label>
+        Lembretes (minutos antes)
+        <input type="text" name="reminders" placeholder="15, 30, 60">
       </label>
       <menu>
-        <button class="btn ghost" value="cancel">Cancelar</button>
-        <button class="btn accent" value="default">Salvar</button>
+        <button type="button" class="btn ghost" data-close>Cancelar</button>
+        <button type="submit" class="btn accent">Salvar</button>
       </menu>
     </form>
   </dialog>
 
-  <dialog id="modal-med" aria-labelledby="mtitle-med">
-    <form method="dialog" id="formMed">
-      <h2 id="mtitle-med">Adicionar Remédio</h2>
-      <label>Nome <input name="name" required class="input" /></label>
-      <label>Dose <input name="dose" class="input" placeholder="10 mg" /></label>
-      <label>Horários (HH:MM, vírgula) <input name="times" class="input" placeholder="08:00,13:00" /></label>
-      <label>Início <input type="date" name="startDate" class="input" /></label>
-      <label>Fim <input type="date" name="endDate" class="input" /></label>
+  <!-- Modal Medicação -->
+  <dialog id="modal-med">
+    <form id="formMed">
+      <h2>Nova Medicação</h2>
+      <label>
+        Nome
+        <input type="text" name="name" required>
+      </label>
+      <label>
+        Dosagem
+        <input type="text" name="dose" required placeholder="ex: 10mg">
+      </label>
+      <label>
+        Horários
+        <input type="text" name="times" required placeholder="ex: 08:00, 12:00, 18:00">
+      </label>
+      <label>
+        Data de Início
+        <input type="date" name="startDate">
+      </label>
+      <label>
+        Data de Término
+        <input type="date" name="endDate">
+      </label>
       <menu>
-        <button class="btn ghost" value="cancel">Cancelar</button>
-        <button class="btn accent" value="default">Salvar</button>
+        <button type="button" class="btn ghost" data-close>Cancelar</button>
+        <button type="submit" class="btn accent">Salvar</button>
       </menu>
     </form>
   </dialog>
 
-  <dialog id="modal-health" aria-labelledby="mtitle-health">
-    <form method="dialog" id="formHealth">
-      <h2 id="mtitle-health">Nova Métrica</h2>
-      <label>Data/Hora <input type="datetime-local" name="date" class="input" required /></label>
-      <label>Peso (kg) <input type="number" step="0.1" name="weight" class="input" /></label>
-      <label>Temperatura (°C) <input type="number" step="0.1" name="temp" class="input" /></label>
-      <label>Glicose (mg/dL) <input type="number" step="1" name="glucose" class="input" /></label>
-      <label>SpO₂ (%) <input type="number" step="1" name="spo2" class="input" /></label>
-      <label>BPM <input type="number" step="1" name="bpm" class="input" /></label>
-      <label>Pressão (SYS/DIA) <input name="bp" class="input" placeholder="120/80" /></label>
-      <menu>
-        <button class="btn ghost" value="cancel">Cancelar</button>
-        <button class="btn accent" value="default">Salvar</button>
-      </menu>
-    </form>
-  </dialog>
-
-  <dialog id="modal-study" aria-labelledby="mtitle-study">
-    <form method="dialog" id="formStudy">
-      <h2 id="mtitle-study">Nova Sessão de Estudo</h2>
-      <label>Matéria <input name="subject" required class="input" /></label>
-      <label>Duração (min) <input type="number" name="duration" value="25" class="input" /></label>
-      <label>Notas <textarea name="notes" class="input"></textarea></label>
-      <menu>
-        <button class="btn ghost" value="cancel">Cancelar</button>
-        <button class="btn accent" value="default">Salvar</button>
-      </menu>
-    </form>
-  </dialog>
-
-  <dialog id="modal-workout" aria-labelledby="mtitle-workout">
-    <form method="dialog" id="formWorkout">
-      <h2 id="mtitle-workout">Novo Treino</h2>
-      <label>Nome <input name="name" required class="input" /></label>
-      <label>Duração (min) <input type="number" name="duration" class="input" /></label>
-      <label>Exercícios <textarea name="exercises" class="input"></textarea></label>
-      <menu>
-        <button class="btn ghost" value="cancel">Cancelar</button>
-        <button class="btn accent" value="default">Salvar</button>
-      </menu>
-    </form>
-  </dialog>
-
-  <dialog id="modal-project" aria-labelledby="mtitle-project">
-    <form method="dialog" id="formProject">
-      <h2 id="mtitle-project">Novo Projeto</h2>
-      <label>Nome <input name="name" required class="input" /></label>
-      <label>Prazo <input type="date" name="due" class="input" /></label>
-      <menu>
-        <button class="btn ghost" value="cancel">Cancelar</button>
-        <button class="btn accent" value="default">Salvar</button>
-      </menu>
-    </form>
-  </dialog>
-
-  <dialog id="modal-chore" aria-labelledby="mtitle-chore">
-    <form method="dialog" id="formChore">
-      <h2 id="mtitle-chore">Novo Afazer</h2>
-      <label>Nome <input name="name" required class="input" /></label>
-      <label>Frequência <input name="freq" class="input" placeholder="diária, semanal, mensal" /></label>
-      <menu>
-        <button class="btn ghost" value="cancel">Cancelar</button>
-        <button class="btn accent" value="default">Salvar</button>
-      </menu>
-    </form>
-  </dialog>
-
-  <dialog id="modal-list" aria-labelledby="mtitle-list">
-    <form method="dialog" id="formList">
-      <h2 id="mtitle-list">Nova Lista</h2>
-      <label>Nome <input name="name" required class="input" /></label>
-      <menu>
-        <button class="btn ghost" value="cancel">Cancelar</button>
-        <button class="btn accent" value="default">Salvar</button>
-      </menu>
-    </form>
-  </dialog>
-
-  <dialog id="modal-fin" aria-labelledby="mtitle-fin">
-    <form method="dialog" id="formFin">
-      <h2 id="mtitle-fin">Nova Transação</h2>
-      <label>Descrição <input name="desc" required class="input" /></label>
-      <label>Valor <input type="number" step="0.01" name="amount" required class="input" /></label>
-      <label>Tipo
-        <select name="type" class="input">
-          <option value="expense">Saída</option>
-          <option value="income">Entrada</option>
+  <!-- Modal Financeiro -->
+  <dialog id="modal-transaction">
+    <form id="formTransaction">
+      <h2>Nova Transação</h2>
+      <label>
+        Descrição
+        <input type="text" name="description" required>
+      </label>
+      <label>
+        Valor
+        <input type="number" name="amount" step="0.01" required>
+      </label>
+      <label>
+        Tipo
+        <select name="type" required>
+          <option value="income">Receita</option>
+          <option value="expense">Despesa</option>
         </select>
       </label>
-      <label>Data <input type="date" name="date" class="input" /></label>
+      <label>
+        Categoria
+        <select name="category" required>
+          <option value="salary">Salário</option>
+          <option value="food">Alimentação</option>
+          <option value="transport">Transporte</option>
+          <option value="health">Saúde</option>
+          <option value="entertainment">Entretenimento</option>
+          <option value="other">Outro</option>
+        </select>
+      </label>
+      <label>
+        Data
+        <input type="date" name="date" required>
+      </label>
       <menu>
-        <button class="btn ghost" value="cancel">Cancelar</button>
-        <button class="btn accent" value="default">Salvar</button>
+        <button type="button" class="btn ghost" data-close>Cancelar</button>
+        <button type="submit" class="btn accent">Salvar</button>
       </menu>
     </form>
   </dialog>
 
-  <dialog id="modal-devo" aria-labelledby="mtitle-devo">
-    <form method="dialog" id="formDevo">
-      <h2 id="mtitle-devo">Nova Entrada Devocional</h2>
-      <label>Data <input type="date" name="date" class="input" /></label>
-      <label>Versículo <input name="verse" class="input" /></label>
-      <label>Reflexão <textarea name="reflection" class="input"></textarea></label>
-      <label>Gratidão <textarea name="gratitude" class="input"></textarea></label>
-      <menu>
-        <button class="btn ghost" value="cancel">Cancelar</button>
-        <button class="btn accent" value="default">Salvar</button>
-      </menu>
-    </form>
-  </dialog>
+  <!-- Toast Container -->
+  <div class="toast-container" id="toastContainer"></div>
 
-  <!-- ===================== TOAST CONTAINER ===================== -->
-  <div class="toast-container" id="toastContainer" aria-live="polite" aria-atomic="true"></div>
-
-  <!-- ===================== SCRIPTS ===================== -->
-  <!-- NÃO ADICIONE MAIS SCRIPTS AQUI - já temos script.js com defer -->
+  <!-- Loading Overlay -->
+  <div class="loading-overlay" id="loadingOverlay" style="display:none;">
+    <div class="loading-spinner"></div>
+  </div>
 </body>
 </html>
