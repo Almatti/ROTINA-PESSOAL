@@ -52,6 +52,18 @@ export function ReminderScheduler() {
           }
         }
       }
+      if (prefs.agua) {
+        const h = Number(localTimeHHMM(new Date(), tz).slice(0, 2));
+        const last = Number(localStorage.getItem("vilma:water-notified") || 0);
+        if (h >= 8 && h <= 20 && now - last > 2 * 3600_000) {
+          const { data: water } = await sb.from("water_logs").select("amount_ml").eq("log_date", today);
+          const total = (water ?? []).reduce((s, w) => s + w.amount_ml, 0);
+          if (total < (profile.water_goal_ml ?? 2000)) {
+            localStorage.setItem("vilma:water-notified", String(now));
+            await notify("Hora de beber água 💧", `Você está em ${total} de ${profile.water_goal_ml} ml hoje.`, "/agua", "agua");
+          }
+        }
+      }
     };
     void check();
     const id = setInterval(check, 60_000);
