@@ -9,12 +9,15 @@ import { toolDefinitions, executeTool, type ToolContext } from "@/lib/vilma/tool
 import { localDateISO, localTimeHHMM, zonedParts, DEFAULT_TZ } from "@/lib/domain/dates";
 
 export const runtime = "nodejs";
-export const maxDuration = 120;
+export const maxDuration = 60;
+/** Responder antes do limite do servidor (a tela nunca fica carregando sem resposta). */
+const TIME_BUDGET_MS = 50_000;
 
 const bodySchema = z.object({ conversationId: z.string().uuid().nullable().optional(), message: z.string().trim().min(1).max(4000) });
 type BetaParam = Anthropic.Beta.Messages.BetaMessageParam;
 
 export async function POST(req: NextRequest) {
+  const startedAt = Date.now();
   const { supabase: sb, user } = await getUser();
   if (!user) return NextResponse.json({ error: "Faça login para conversar com a Vilma." }, { status: 401 });
   const parsed = bodySchema.safeParse(await req.json().catch(() => null));
@@ -77,6 +80,7 @@ export async function POST(req: NextRequest) {
     try {
       const history = messages.map((m) => ({ role: m.role === "assistant" ? ("assistant" as const) : ("user" as const), content: String(m.content) }));
       const r = await runGemini({
+        deadline: startedAt + TIME_BUDGET_MS,
         system: VILMA_SYSTEM,
         history,
         tools: toolDefinitions(),
@@ -85,7 +89,12 @@ export async function POST(req: NextRequest) {
           return out.ok ? out.data ?? { ok: true, resumo: out.summary } : { erro: out.error };
         },
       });
-      reply = r.refused ? REFUSAL : r.reply || (r.truncated ? "A resposta ficou longa demais. Pode reformular de forma mais específica?" : "");
+      if (r.timedOut && !actions.length && !pendingList.length) return NextResponse.json({ error: "A IA demorou demais para responder.", code: "provider_error", conversationId }, { status: 504 });
+      reply = r.refused
+        ? REFUSAL
+        : r.timedOut
+          ? "Fiz uma parte do que você pediu (veja abaixo). Para eu continuar, é só me dizer “continue”. 💜"
+          : r.reply || (r.truncated ? "A resposta ficou longa demais. Pode reformular de forma mais específica?" : "");
     } catch (e) {
       const status = e instanceof GeminiError ? e.status : 500;
       if (e instanceof GeminiError) console.error("gemini", status, e.message.slice(0, 200));

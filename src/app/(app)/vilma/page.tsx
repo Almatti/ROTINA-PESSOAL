@@ -94,8 +94,12 @@ function VilmaInner() {
       return;
     }
     try {
-      const res = await fetch("/api/vilma", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ conversationId, message: msg }) });
-      const j = await res.json();
+      // nunca deixar a tela carregando para sempre: após 65 s responde no modo básico
+      const res = await fetch("/api/vilma", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ conversationId, message: msg }), signal: AbortSignal.timeout(65_000) }).catch((e: unknown) => {
+        if ((e as Error)?.name === "TimeoutError" || (e as Error)?.name === "AbortError") return new Response(JSON.stringify({ code: "provider_error" }), { status: 504 });
+        throw e;
+      });
+      const j = await res.json().catch(() => ({ code: res.status >= 500 ? "provider_error" : undefined, error: "Algo deu errado." }));
       if (j.conversationId) setConversationId(j.conversationId);
       if (!res.ok && (j.code === "quota" || j.code === "provider_error" || j.code === "not_configured")) {
         // IA indisponível (ex.: limite gratuito do dia): responde com a Vilma básica

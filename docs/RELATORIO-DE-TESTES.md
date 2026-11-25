@@ -9,7 +9,7 @@ Execução em 25/11/2026, num container Linux (Node 22, PostgreSQL 16.15, Chromi
 | TypeScript (`tsc --noEmit`) | TypeScript 5.9 | ✅ sem erros |
 | Lint (`next build`) | ESLint + next/core-web-vitals | ✅ 0 erros, 0 avisos |
 | Build de produção | Next.js 15.5 | ✅ todas as páginas e APIs compiladas |
-| Unitários | Vitest 3.2 | ✅ **76/76** |
+| Unitários | Vitest 3.2 | ✅ **80/80** |
 | Banco de dados (migrations + RLS) | PostgreSQL 16 + psql | ✅ 13 grupos de asserções |
 | End-to-end | Playwright 1.63 (Pixel 7 e desktop 1366px) | ✅ **24/24** (+1 suíte de capturas sob demanda)
 | End-to-end da versão local (site estático em subpasta) | Playwright | ✅ **2/2** | |
@@ -25,7 +25,7 @@ Execução em 25/11/2026, num container Linux (Node 22, PostgreSQL 16.15, Chromi
 - **Linguagem natural** (4): inclui valores sem “R$” após verbos de dinheiro (“gastei 45,90 no mercado”) sem confundir com datas (“dia 10”);: “amanhã”, “sexta”, “dia 10”, “15/01”, “daqui a 3 dias”, “às 7h”, “19h30”, “3 da tarde” e comandos completos (agendar, despesa, receita, lembrete, sono, água).
 - **Web Push** (3): payload com tamanho limitado e somente links internos; envio por dispositivo com remoção de inscrições expiradas (410); nada é enviado sem chaves VAPID.
 - **Google Tasks** (13): o que vai para o Google (tarefas de todas as áreas, hábitos só no dia agendado, provas, etapas, rotinas, manutenções), alarmes só para itens com horário, e sincronização completa contra um Google simulado: criação da lista “Vilma”, envio sem duplicar (2ª execução sem escritas), conclusão no Google → app (tarefa, hábito, rotina com próxima data), conclusão no app → Google com remoção do alarme, tarefa criada no Google entra no app, edição de título/data, exclusão nos dois sentidos, reconexão sem permissão do Tasks e alarmes desligados.
-- **Gemini** (6): conversão das 25 ferramentas para o formato do Gemini; laço de ferramentas com assinatura de raciocínio preservada e id da chamada; limite gratuito (429) tratável; bloqueio de segurança como recusa; papéis do histórico.
+- **Gemini** (10): inclui troca para o modelo reserva quando o Google está sobrecarregado (503), nova tentativa sem `thinkingLevel`, limite de tempo para nunca deixar a tela carregando e sobrecarga persistente tratada; conversão das 25 ferramentas para o formato do Gemini; laço de ferramentas com assinatura de raciocínio preservada e id da chamada; limite gratuito (429) tratável; bloqueio de segurança como recusa; papéis do histórico.
 - **Ferramentas da Vilma** (9): esquemas válidos; parâmetros inválidos rejeitados antes do banco; ferramenta desconhecida bloqueada; **exclusão gera ação pendente e não executa**; execução só após confirmação; alteração em massa exige confirmação; sem conta cadastrada não inventa saldo; valor decimal exato; sono por duração.
 
 ## Banco de dados (`npm run test:db`)

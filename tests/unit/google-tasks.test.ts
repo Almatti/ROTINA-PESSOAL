@@ -149,7 +149,7 @@ describe("Google Tasks: sincronização nos dois sentidos", () => {
     expect(byTitle("💼 Relatório")?.due).toBe("2026-11-26T00:00:00.000Z");
     expect(byTitle("🔁 Ler 10 páginas")?.due).toBe(`${TODAY}T00:00:00.000Z`);
     expect(r.alarms).toBe(1);
-    const alarm = [...g.events.values()][0] as { summary: string; start: { dateTime: string }; extendedProperties: { private: Record<string, string> } };
+    const alarm = [...g.events.values()][0] as unknown as { summary: string; start: { dateTime: string }; extendedProperties: { private: Record<string, string> } };
     expect(alarm.summary).toBe("⏰ 💼 Relatório");
     expect(alarm.start.dateTime).toBe("2026-11-26T17:30:00.000Z"); // 14:30 em São Paulo
     expect(alarm.extendedProperties.private.vilma_alarm).toBe("1");

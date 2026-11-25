@@ -5,6 +5,8 @@ import "server-only";
  */
 
 export const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-flash-latest";
+/** Modelo reserva (mais leve e com menos fila) quando o principal está sobrecarregado. */
+export const GEMINI_FALLBACK_MODEL = process.env.GEMINI_FALLBACK_MODEL || "gemini-flash-lite-latest";
 const ENDPOINT = (model: string) => `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`;
 
 export class GeminiError extends Error {
@@ -60,7 +62,7 @@ export function geminiFunctionDeclarations(tools: GeminiTool[]) {
 type Part = { text?: string; thought?: boolean; functionCall?: { id?: string; name: string; args?: Json }; functionResponse?: unknown; [k: string]: unknown };
 type Content = { role: "user" | "model"; parts: Part[] };
 
-export interface GeminiRunResult { reply: string; refused?: boolean; truncated?: boolean }
+export interface GeminiRunResult { reply: string; refused?: boolean; truncated?: boolean; timedOut?: boolean }
 
 /**
  * Laço de chamadas de ferramenta com o Gemini.
@@ -73,6 +75,9 @@ export async function runGemini(opts: {
   onToolCall: (name: string, args: unknown) => Promise<unknown>;
   maxSteps?: number;
   fetchImpl?: typeof fetch;
+  /** Instante (ms) em que precisamos parar para responder a tempo. */
+  deadline?: number;
+  retryDelayMs?: number;
 }): Promise<GeminiRunResult> {
   const key = process.env.GEMINI_API_KEY;
   if (!key) throw new GeminiError(503, "GEMINI_API_KEY ausente");
@@ -80,23 +85,55 @@ export async function runGemini(opts: {
   const contents: Content[] = opts.history.map((m) => ({ role: m.role === "assistant" ? "model" : "user", parts: [{ text: m.content }] }));
   const declarations = geminiFunctionDeclarations(opts.tools);
 
-  for (let step = 0; step < (opts.maxSteps ?? 8); step++) {
-    const res = await doFetch(ENDPOINT(GEMINI_MODEL), {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "x-goog-api-key": key },
-      body: JSON.stringify({
-        systemInstruction: { parts: [{ text: opts.system }] },
-        contents,
-        tools: [{ functionDeclarations: declarations }],
-        toolConfig: { functionCallingConfig: { mode: "AUTO" } },
-        generationConfig: { maxOutputTokens: 8192 },
-      }),
-      signal: AbortSignal.timeout(90_000),
-    });
-    if (!res.ok) {
-      const body = await res.text().catch(() => "");
-      throw new GeminiError(res.status, body.slice(0, 500));
+  const deadline = opts.deadline ?? Date.now() + 100_000;
+  const retryDelay = opts.retryDelayMs ?? 1500;
+  let useThinkingLow = true;
+
+  /** Uma chamada ao Gemini com novas tentativas: sobrecarga (503/429/500) troca para o modelo reserva. */
+  const generate = async (): Promise<Response> => {
+    const models = [GEMINI_MODEL, GEMINI_FALLBACK_MODEL, GEMINI_FALLBACK_MODEL];
+    let last: Response | null = null;
+    for (let attempt = 0; attempt < models.length; attempt++) {
+      const remaining = deadline - Date.now();
+      if (remaining < 6_000) break;
+      const model = models[attempt];
+      const generationConfig: Json = { maxOutputTokens: 8192 };
+      // respostas mais rápidas: raciocínio curto (só nos modelos que aceitam a opção)
+      if (useThinkingLow && !/2\.[05]/.test(model)) generationConfig.thinkingConfig = { thinkingLevel: "low" };
+      const res = await doFetch(ENDPOINT(model), {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-goog-api-key": key },
+        body: JSON.stringify({
+          systemInstruction: { parts: [{ text: opts.system }] },
+          contents,
+          tools: [{ functionDeclarations: declarations }],
+          toolConfig: { functionCallingConfig: { mode: "AUTO" } },
+          generationConfig,
+        }),
+        signal: AbortSignal.timeout(Math.min(35_000, remaining - 3_000)),
+      }).catch((e: unknown) => {
+        // tempo esgotado nesta chamada: trata como sobrecarga e tenta o reserva
+        if ((e as Error)?.name === "TimeoutError" || (e as Error)?.name === "AbortError") return new Response("timeout", { status: 504 });
+        throw e;
+      });
+      if (res.ok) return res;
+      const body = await res.clone().text().catch(() => "");
+      if (res.status === 400 && useThinkingLow && /thinking/i.test(body)) {
+        useThinkingLow = false; // modelo não aceita a opção: tenta de novo sem ela
+        attempt--;
+        continue;
+      }
+      last = res;
+      if (![429, 500, 503, 504].includes(res.status)) break;
+      if (attempt < models.length - 1) await new Promise((r) => setTimeout(r, retryDelay));
     }
+    if (!last) throw new GeminiError(504, "sem tempo para chamar a IA");
+    throw new GeminiError(last.status, (await last.text().catch(() => "")).slice(0, 500));
+  };
+
+  for (let step = 0; step < (opts.maxSteps ?? 8); step++) {
+    if (deadline - Date.now() < 8_000) return { reply: "", truncated: true, timedOut: true };
+    const res = await generate();
     const j = (await res.json()) as { candidates?: { content?: Content; finishReason?: string }[]; promptFeedback?: { blockReason?: string } };
     const cand = j.candidates?.[0];
     if (!cand) return { reply: "", refused: Boolean(j.promptFeedback?.blockReason) };

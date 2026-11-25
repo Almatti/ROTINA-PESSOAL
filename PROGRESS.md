@@ -64,7 +64,7 @@ Versão estática sem servidor (`npm run build:local`), publicada pelo workflow 
 ## Resultados de testes (última execução)
 
 - `tsc`: OK · `next build` (com lint): OK, 0 avisos
-- `npm test`: 76/76 ✅ (inclui Gemini e Google Tasks)
+- `npm test`: 80/80 ✅ (inclui Gemini e Google Tasks)
 - E2E modo local: 2/2 ✅
 - `npm run test:db`: OK ✅
 - `npm run test:e2e`: 24/24 ✅ (mobile Pixel 7 + desktop 1366px)
