@@ -24,7 +24,9 @@ export default function SettingsPage() {
   const { user, profile, updateProfile, signOut } = useSession();
   const toast = useToast();
   const { data: automations = [] } = useTable<{ id: string; key: string; enabled: boolean; last_run_at: string | null }>("automations", { order: "key" });
-  const { data: integrations = [] } = useTable<{ id: string; provider: string; status: string; last_synced_at: string | null; last_error: string | null }>("integrations", { select: "id,provider,status,last_synced_at,last_error" });
+  const { data: integrations = [] } = useTable<{ id: string; provider: string; status: string; last_synced_at: string | null; last_error: string | null; scope: string | null; tasks_synced_at: string | null }>("integrations", { select: "id,provider,status,last_synced_at,last_error,scope,tasks_synced_at" });
+  const [googleReady, setGoogleReady] = useState<boolean | null>(null);
+  const [syncing, setSyncing] = useState(false);
   const [perm, setPerm] = useState("default");
   const [deleting, setDeleting] = useState(false);
   const [deleteText, setDeleteText] = useState("");
@@ -32,12 +34,16 @@ export default function SettingsPage() {
   const [revokeAI, setRevokeAI] = useState(false);
   const [disconnect, setDisconnect] = useState(false);
   useEffect(() => {
+    if (isLocalMode) return;
+    fetch("/api/google/status", { cache: "no-store" }).then((r) => r.json()).then((j) => setGoogleReady(!!j.configured)).catch(() => setGoogleReady(false));
+  }, []);
+  useEffect(() => {
     setPerm(typeof Notification === "undefined" ? "unsupported" : Notification.permission);
   }, []);
   useEffect(() => {
     const p = new URLSearchParams(window.location.search);
-    if (p.get("google") === "ok") toast.show("Google Agenda conectado! Sincronizando…", "success");
-    if (p.get("google") === "erro") toast.show("Não foi possível conectar ao Google Agenda.", "error");
+    if (p.get("google") === "ok") toast.show("Google conectado! Agenda e Tasks sincronizados.", "success");
+    if (p.get("google") === "erro") toast.show("Não foi possível conectar ao Google.", "error");
   }, [toast]);
   if (!profile) return null;
   const google = integrations.find((i) => i.provider === "google_calendar");
@@ -124,13 +130,45 @@ export default function SettingsPage() {
       </Card>
 
       <SectionTitle><Plug className="mr-2 inline size-4 text-primary" aria-hidden /><span id="integracoes">Integrações</span></SectionTitle>
-      <Card className="flex flex-wrap items-center gap-3">
-        <span className="grid size-11 place-items-center rounded-xl bg-info-soft font-bold text-info">31</span>
-        <div className="min-w-0 flex-1">
-          <p className="font-semibold">Google Agenda</p>
-          <p className="text-xs text-muted">{google ? (google.status === "ativa" ? `Conectado${google.last_synced_at ? ` · sincronizado em ${new Date(google.last_synced_at).toLocaleString("pt-BR")}` : ""}` : `Erro: ${google.last_error ?? "reconecte sua conta"}`) : "Sincronização bidirecional dos seus compromissos."}</p>
+      <Card className="space-y-3">
+        <div className="flex flex-wrap items-center gap-3">
+          <span className="grid size-11 place-items-center rounded-xl bg-info-soft font-bold text-info">G</span>
+          <div className="min-w-0 flex-1">
+            <p className="font-semibold">Google Agenda e Google Tasks</p>
+            <p className="text-xs text-muted">
+              {google
+                ? google.status === "ativa"
+                  ? `Conectado${google.last_synced_at ? ` · sincronizado em ${new Date(google.last_synced_at).toLocaleString("pt-BR")}` : ""}`
+                  : `Erro: ${google.last_error ?? "reconecte sua conta"}`
+                : "Compromissos vão para o Google Agenda; tarefas, hábitos e rotinas vão para o Google Tasks (lista “Vilma”)."}
+            </p>
+          </div>
+          {isLocalMode ? (
+            <span className="text-xs text-muted">Disponível na versão online</span>
+          ) : google ? (
+            <div className="flex gap-2">
+              <Button size="sm" variant="soft" loading={syncing} onClick={async () => { setSyncing(true); const r = await fetch("/api/google/sync", { method: "POST" }); const j = await r.json().catch(() => ({})); setSyncing(false); invalidate("integrations", "tasks", "events", "habit_logs"); toast.show(r.ok ? (j.errors?.length ? `Sincronizado com avisos: ${j.errors.join(" · ")}` : "Sincronizado com o Google.") : j.error ?? "Falha ao sincronizar.", r.ok && !j.errors?.length ? "success" : "error"); }}>Sincronizar agora</Button>
+              <Button size="sm" variant="ghost" className="text-error" onClick={() => setDisconnect(true)}>Desconectar</Button>
+            </div>
+          ) : googleReady === false ? (
+            <span className="text-xs text-muted">Aguardando configuração do Google no servidor</span>
+          ) : (
+            <a href="/api/google/connect" className="inline-flex h-9 items-center gap-1.5 rounded-pill bg-primary px-3.5 text-sm font-semibold text-primary-ink"><ExternalLink className="size-4" aria-hidden />Conectar</a>
+          )}
         </div>
-        {isLocalMode ? <span className="text-xs text-muted">Disponível na versão online</span> : google ? <Button size="sm" variant="ghost" className="text-error" onClick={() => setDisconnect(true)}>Desconectar</Button> : <a href="/api/google/connect" className="inline-flex h-9 items-center gap-1.5 rounded-pill bg-primary px-3.5 text-sm font-semibold text-primary-ink"><ExternalLink className="size-4" aria-hidden />Conectar</a>}
+        {google && google.scope && !google.scope.includes("auth/tasks") && (
+          <p className="rounded-2xl bg-warning-soft p-3 text-sm text-warning">Para enviar tarefas e hábitos ao Google Tasks, <a className="font-semibold underline" href="/api/google/connect">reconecte sua conta</a> e autorize o acesso ao Tasks.</p>
+        )}
+        {google && (
+          <>
+            <ul className="space-y-1 text-xs text-ink-soft">
+              <li>📅 <strong>Google Agenda:</strong> compromissos de trabalho, estudos, pessoal e casa (nos dois sentidos).</li>
+              <li>✅ <strong>Google Tasks</strong> (lista “Vilma”): tarefas, hábitos do dia, provas e trabalhos, etapas de projeto, rotinas e manutenções da casa. Concluir no Google conclui no app.{google.tasks_synced_at ? ` Última sincronização: ${new Date(google.tasks_synced_at).toLocaleString("pt-BR")}.` : ""}</li>
+              <li>🔄 Sincroniza sozinho alguns segundos depois de cada alteração, ao abrir o app e todo dia às 6h.</li>
+            </ul>
+            <Toggle checked={profile.google_alarms !== false} onChange={(b) => updateProfile({ google_alarms: b })} label="Alarmes com horário no Google Agenda" description="O Google Tasks não guarda horário. Tarefas e hábitos com hora ganham um alarme curto no Agenda, para o celular avisar no minuto certo." />
+          </>
+        )}
       </Card>
 
       <SectionTitle><Shield className="mr-2 inline size-4 text-primary" aria-hidden /><span id="privacidade">Privacidade e dados (LGPD)</span></SectionTitle>
@@ -163,7 +201,7 @@ export default function SettingsPage() {
       <p className="mt-4 text-center text-xs text-muted">Vilma — Minha Vida · {user?.email}</p>
 
       <ConfirmDialog open={revokeAI} title="Revogar autorização da IA?" message="A Vilma volta para o modo básico (sem IA) até você autorizar novamente. Seu histórico de conversas permanece até que você o exclua." confirmLabel="Revogar" onCancel={() => setRevokeAI(false)} onConfirm={async () => { await updateProfile({ ai_consent_at: null, ai_consent_provider: null }); await getSupabase().from("consents").insert({ kind: profile.ai_consent_provider === "gemini" ? "ia_google" : "ia", granted: false }); setRevokeAI(false); }} />
-      <ConfirmDialog open={disconnect} title="Desconectar Google Agenda?" message="O acesso é revogado e os tokens apagados. Os compromissos já importados continuam no app." confirmLabel="Desconectar" onCancel={() => setDisconnect(false)} onConfirm={async () => { const r = await fetch("/api/google/disconnect", { method: "POST" }); setDisconnect(false); invalidate("integrations"); toast.show(r.ok ? "Google Agenda desconectado." : "Falha ao desconectar.", r.ok ? "success" : "error"); }} />
+      <ConfirmDialog open={disconnect} title="Desconectar o Google?" message="O acesso é revogado e os tokens apagados. O que já está no app continua no app, e o que já foi para o Google continua no Google." confirmLabel="Desconectar" onCancel={() => setDisconnect(false)} onConfirm={async () => { const r = await fetch("/api/google/disconnect", { method: "POST" }); setDisconnect(false); invalidate("integrations"); toast.show(r.ok ? "Google desconectado." : "Falha ao desconectar.", r.ok ? "success" : "error"); }} />
       <ConfirmDialog
         open={deleting}
         danger

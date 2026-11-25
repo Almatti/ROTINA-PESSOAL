@@ -31,6 +31,7 @@ export interface Profile {
   privacy_accepted_at: string | null;
   ai_consent_at: string | null;
   ai_consent_provider: "anthropic" | "gemini" | null;
+  google_alarms: boolean;
   cycle_consent_at: string | null;
 }
 

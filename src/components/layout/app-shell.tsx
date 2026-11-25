@@ -12,6 +12,7 @@ import { useOutboxCount } from "@/lib/data/store";
 import { cn } from "@/components/ui/primitives";
 import { FocusMini } from "@/components/focus/focus-mini";
 import { ReminderScheduler } from "./reminders";
+import { GoogleAutoSync } from "./google-auto-sync";
 
 function isActive(path: string, href: string) {
   return path === href || path.startsWith(href + "/");
@@ -160,6 +161,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       <FocusMini />
       <BottomNav />
       <ReminderScheduler />
+      <GoogleAutoSync />
     </MenuContext.Provider>
   );
 }

@@ -14,9 +14,11 @@ import { encrypt, decrypt } from "@/lib/crypto";
 import { addDays, localDateISO } from "@/lib/domain/dates";
 import type { RecurrenceRule } from "@/lib/domain/recurrence";
 
-const TOKEN_URL = "https://oauth2.googleapis.com/token";
-const API = "https://www.googleapis.com/calendar/v3";
-export const GOOGLE_SCOPES = ["https://www.googleapis.com/auth/calendar.events", "https://www.googleapis.com/auth/calendar.readonly"];
+const TOKEN_URL = process.env.GOOGLE_TOKEN_URL || "https://oauth2.googleapis.com/token";
+export const CALENDAR_API = process.env.GOOGLE_CALENDAR_API_BASE || "https://www.googleapis.com/calendar/v3";
+const API = CALENDAR_API;
+export const TASKS_SCOPE = "https://www.googleapis.com/auth/tasks";
+export const GOOGLE_SCOPES = ["https://www.googleapis.com/auth/calendar.events", "https://www.googleapis.com/auth/calendar.readonly", TASKS_SCOPE];
 
 export const isGoogleConfigured = () => Boolean(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET && process.env.INTEGRATIONS_ENCRYPTION_KEY && process.env.SUPABASE_SERVICE_ROLE_KEY);
 export const redirectUri = () => `${(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000").replace(/\/$/, "")}/api/google/callback`;
@@ -45,9 +47,9 @@ export async function exchangeCode(code: string) {
   return (await res.json()) as { access_token: string; refresh_token?: string; expires_in: number; scope: string };
 }
 
-interface Integration { id: string; user_id: string; access_token_enc: string | null; refresh_token_enc: string | null; token_expires_at: string | null; calendar_id: string; last_synced_at: string | null }
+export interface Integration { id: string; user_id: string; access_token_enc: string | null; refresh_token_enc: string | null; token_expires_at: string | null; calendar_id: string; last_synced_at: string | null; scope: string | null; tasks_list_id: string | null; tasks_synced_at: string | null }
 
-async function accessToken(admin: SupabaseClient, integ: Integration): Promise<string> {
+export async function accessToken(admin: SupabaseClient, integ: Integration): Promise<string> {
   if (integ.access_token_enc && integ.token_expires_at && new Date(integ.token_expires_at).getTime() > Date.now() + 60_000) return decrypt(integ.access_token_enc);
   if (!integ.refresh_token_enc) throw new Error("Sem refresh token — reconecte o Google Agenda.");
   const res = await fetch(TOKEN_URL, {
@@ -81,6 +83,7 @@ export async function revokeGoogle(admin: SupabaseClient, userId: string) {
   if (!data) return;
   const token = data.refresh_token_enc ? decrypt(data.refresh_token_enc) : data.access_token_enc ? decrypt(data.access_token_enc) : null;
   if (token) await fetch(`https://oauth2.googleapis.com/revoke?token=${encodeURIComponent(token)}`, { method: "POST" }).catch(() => undefined);
+  await admin.from("google_links").delete().eq("user_id", userId);
   await admin.from("integrations").delete().eq("id", data.id).eq("user_id", userId);
 }
 
@@ -95,6 +98,7 @@ interface GEvent {
   start?: { date?: string; dateTime?: string; timeZone?: string };
   end?: { date?: string; dateTime?: string };
   recurringEventId?: string;
+  extendedProperties?: { private?: Record<string, string> };
 }
 
 /** Converte a regra de recorrência local em RRULE (RFC 5545). */
@@ -156,6 +160,8 @@ export async function syncGoogle(admin: SupabaseClient, userId: string, tz: stri
     const { data: localLinked } = await admin.from("events").select("id,google_event_id,local_updated_at,google_updated_at").eq("user_id", userId).not("google_event_id", "is", null);
     const linked = new Map((localLinked ?? []).map((e) => [e.google_event_id as string, e]));
     for (const g of remote) {
+      // alarmes criados pela Vilma (lembretes com horário) não viram compromissos no app
+      if (g.extendedProperties?.private?.vilma_alarm) continue;
       // instâncias de séries recorrentes criadas pelo app já existem localmente como regra: não duplicar
       if (g.recurringEventId && linked.has(g.recurringEventId)) continue;
       const local = linked.get(g.id);

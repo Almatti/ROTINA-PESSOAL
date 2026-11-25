@@ -159,6 +159,11 @@ function withIds(values: Row | Row[]) {
   return Array.isArray(values) ? values.map(add) : add(values);
 }
 
+/** Avisa (ex.: sincronização com o Google) que a usuária alterou dados. */
+export function notifyMutated(...tables: string[]) {
+  if (typeof window !== "undefined") window.dispatchEvent(new CustomEvent("vilma:mutated", { detail: { tables } }));
+}
+
 /**
  * Executa uma mutação. Sem conexão, enfileira e resolve com { queued: true }.
  * Erros de validação são lançados como DataError com mensagem amigável.
@@ -179,6 +184,7 @@ export async function mutate<T = Row>(op: MutationOp): Promise<{ data: T[] | nul
       throw new DataError(friendlyError(res.error), res.error.code);
     }
     invalidate(op.table);
+    notifyMutated(op.table);
     return { data: (res.data as T[]) ?? null, queued: false };
   } catch (e) {
     if (e instanceof DataError) throw e;
@@ -212,6 +218,7 @@ export async function flushOutbox(): Promise<{ sent: number; failed: string[] }>
   } finally {
     flushing = false;
   }
+  if (sent) notifyMutated("outbox");
   return { sent, failed };
 }
 

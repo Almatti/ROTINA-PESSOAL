@@ -177,6 +177,10 @@ export const LOCAL_SCHEMA = {
    "ai_consent_provider": {
     "type": "text",
     "default": null
+   },
+   "google_alarms": {
+    "type": "boolean",
+    "default": null
    }
   },
   "unique": [
@@ -3531,6 +3535,14 @@ export const LOCAL_SCHEMA = {
     "default": {
      "fn": "now"
     }
+   },
+   "tasks_list_id": {
+    "type": "text",
+    "default": null
+   },
+   "tasks_synced_at": {
+    "type": "timestamptz",
+    "default": null
    }
   },
   "unique": [
@@ -3617,6 +3629,84 @@ export const LOCAL_SCHEMA = {
    ],
    [
     "endpoint"
+   ]
+  ],
+  "cascade": [],
+  "setNull": []
+ },
+ "google_links": {
+  "columns": {
+   "id": {
+    "type": "uuid",
+    "default": {
+     "fn": "uuid"
+    }
+   },
+   "user_id": {
+    "type": "uuid",
+    "default": {
+     "fn": "uid"
+    }
+   },
+   "target": {
+    "type": "text",
+    "default": null
+   },
+   "source": {
+    "type": "text",
+    "default": null
+   },
+   "source_id": {
+    "type": "uuid",
+    "default": null
+   },
+   "occurrence": {
+    "type": "text",
+    "default": {
+     "value": ""
+    }
+   },
+   "remote_id": {
+    "type": "text",
+    "default": null
+   },
+   "remote_updated_at": {
+    "type": "timestamptz",
+    "default": null
+   },
+   "pushed_hash": {
+    "type": "text",
+    "default": null
+   },
+   "dismissed": {
+    "type": "boolean",
+    "default": {
+     "value": false
+    }
+   },
+   "synced_at": {
+    "type": "timestamptz",
+    "default": {
+     "fn": "now"
+    }
+   },
+   "created_at": {
+    "type": "timestamptz",
+    "default": {
+     "fn": "now"
+    }
+   }
+  },
+  "unique": [
+   [
+    "id"
+   ],
+   [
+    "user_id",
+    "target",
+    "source",
+    "source_id",
+    "occurrence"
    ]
   ],
   "cascade": [],

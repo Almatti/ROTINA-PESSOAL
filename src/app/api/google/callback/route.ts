@@ -2,7 +2,8 @@ import { NextResponse, type NextRequest } from "next/server";
 import { timingSafeEqual } from "node:crypto";
 import { getUser } from "@/lib/supabase/server";
 import { getAdminSupabase } from "@/lib/supabase/admin";
-import { exchangeCode, saveTokens, syncGoogle } from "@/lib/google/calendar";
+import { exchangeCode, saveTokens } from "@/lib/google/calendar";
+import { syncAllGoogle } from "@/lib/google/run";
 
 export const runtime = "nodejs";
 
@@ -23,8 +24,7 @@ export async function GET(req: NextRequest) {
     const admin = getAdminSupabase();
     await saveTokens(admin, user.id, tokens);
     await sb.from("consents").insert({ kind: "google_agenda", granted: true });
-    const { data: profile } = await sb.from("profiles").select("timezone").eq("id", user.id).single();
-    await syncGoogle(admin, user.id, profile?.timezone ?? "America/Sao_Paulo").catch(() => undefined);
+    await syncAllGoogle(admin, user.id).catch(() => undefined);
     const res = NextResponse.redirect(new URL("/configuracoes?google=ok#integracoes", site));
     res.cookies.delete({ name: "g_oauth_state", path: "/api/google" });
     return res;

@@ -73,6 +73,14 @@ Dá para alternar no rodapé da conversa (“Usar modo básico” / “Ligar a I
 - **Trabalho, Estudos, Casa, Anotações e Metas:** projetos com etapas e horas; cursos com provas e revisões; cômodos, compras, refeições e manutenção; notas com pastas e tags; metas com etapas e vision board.
 - **Modo foco:** cronômetro Pomodoro que continua contando mesmo se você mudar de tela.
 
+## 5b. Google Agenda e Google Tasks
+
+Em **Configurações › Integrações › Conectar**, autorize sua conta Google. A partir daí:
+- **Compromissos** (trabalho, estudos, pessoal) vão para o **Google Agenda**.
+- **Tarefas, hábitos do dia, provas, etapas de projeto e rotinas da casa** vão para o **Google Tasks**, na lista **“Vilma”**. Concluir lá conclui aqui também.
+- O Google Tasks não guarda horário; por isso, o que tem hora ganha um **alarme ⏰ no Google Agenda** para o celular avisar no minuto certo (dá para desligar).
+- Tudo sincroniza sozinho poucos segundos depois de cada alteração. Apagar algo no Google não apaga no app.
+
 ## 6. Personalização
 
 - **Início › Personalizar:** escolha quais cartões aparecem e a ordem.

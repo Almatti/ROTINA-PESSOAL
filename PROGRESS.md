@@ -55,10 +55,16 @@ Versão estática sem servidor (`npm run build:local`), publicada pelo workflow 
 - Provedor Gemini (plano gratuito) com as mesmas 25 ferramentas validadas; consentimento específico por provedor (`profiles.ai_consent_provider`, `consents.kind = 'ia_google'`).
 - Pendente: cadastrar `GEMINI_API_KEY` na Vercel; testar contra a API real do Google.
 
+## Atualização — Google Tasks
+
+- Lista “Vilma” no Google Tasks com tarefas, hábitos do dia, provas, etapas, rotinas e manutenções; sincronização bidirecional; alarmes ⏰ no Google Agenda para itens com horário; sincronização automática após alterações, ao abrir o app e no cron diário.
+- Migration `20261125000007_google_tasks.sql` (tabela `google_links`, colunas em `integrations` e `profiles.google_alarms`) aplicada no Supabase.
+- Pendente: credenciais Google Cloud (Calendar API + Tasks API) na Vercel; teste com a conta Google real.
+
 ## Resultados de testes (última execução)
 
 - `tsc`: OK · `next build` (com lint): OK, 0 avisos
-- `npm test`: 63/63 ✅ (inclui 6 testes do provedor Gemini)
+- `npm test`: 76/76 ✅ (inclui Gemini e Google Tasks)
 - E2E modo local: 2/2 ✅
 - `npm run test:db`: OK ✅
 - `npm run test:e2e`: 24/24 ✅ (mobile Pixel 7 + desktop 1366px)

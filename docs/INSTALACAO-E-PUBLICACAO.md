@@ -37,13 +37,21 @@ Este guia leva o app do zero até publicado na internet. Tempo estimado: 30–60
 
 O consentimento da usuária é pedido separadamente para cada provedor. O app limita cada usuária a 40 mensagens/hora com IA (ajustável em `src/app/api/vilma/route.ts`).
 
-## 3. Google Agenda (sincronização)
+## 3. Google Agenda e Google Tasks
 
-1. No <https://console.cloud.google.com>: crie um projeto, ative a **Google Calendar API**.
-2. *APIs e serviços › Tela de consentimento OAuth*: tipo Externo, adicione os escopos `.../auth/calendar.events` e `.../auth/calendar.readonly`. Enquanto estiver em “Teste”, cadastre os e-mails das testadoras.
-3. *Credenciais › Criar ID do cliente OAuth* (Aplicativo da Web) com o URI de redirecionamento: `https://SEU-DOMINIO/api/google/callback` (e `http://localhost:3000/api/google/callback` para desenvolvimento).
-4. Configure `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `INTEGRATIONS_ENCRYPTION_KEY` (`openssl rand -base64 32`) e `SUPABASE_SERVICE_ROLE_KEY`.
-5. Para publicar para qualquer pessoa, o Google exige a verificação do app (escopos sensíveis).
+**O que vai para onde**
+- **Google Agenda:** compromissos (trabalho, estudos, pessoal, casa), nos dois sentidos.
+- **Google Tasks** (lista “Vilma”, criada automaticamente): tarefas de todas as áreas, hábitos do dia, provas/trabalhos de estudo, etapas de projeto, rotinas e manutenções da casa. Concluir no Google conclui no app; editar título/data de uma tarefa no Google altera no app; tarefa criada na lista “Vilma” entra no app; apagar no Google não apaga nada no app.
+- **Alarmes:** a API do Google Tasks guarda só a data (sem horário). Itens com horário ganham um evento curto “⏰” no Google Agenda com aviso no minuto certo (desligável em Configurações). Esses alarmes não são importados de volta como compromissos.
+- **Quando sincroniza:** alguns segundos depois de cada alteração no app, ao abrir o app (se passou mais de 10 min), no botão “Sincronizar agora” e no cron diário (06:00 em Brasília), que também cria os hábitos do dia.
+
+**Configuração (Google Cloud)**
+1. No <https://console.cloud.google.com>: crie um projeto e ative **Google Calendar API** e **Google Tasks API** (*APIs e serviços › Biblioteca*).
+2. *Tela de consentimento OAuth*: tipo **Externo**; escopos `.../auth/calendar.events`, `.../auth/calendar.readonly` e `.../auth/tasks`.
+3. **Publique o app** (*Publicar app* / “Em produção”). Em modo “Teste”, o Google expira o acesso a cada 7 dias. Sem a verificação do Google, aparece o aviso “O Google não verificou este app” ao conectar — para uso pessoal, toque em *Avançado › Acessar*. A verificação só é necessária para abrir o app ao público.
+4. *Credenciais › Criar ID do cliente OAuth* (Aplicativo da Web) com o URI de redirecionamento `https://SEU-DOMINIO/api/google/callback` (e `http://localhost:3000/api/google/callback` para desenvolvimento).
+5. Configure `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `INTEGRATIONS_ENCRYPTION_KEY` (`openssl rand -base64 32`) e `SUPABASE_SERVICE_ROLE_KEY`.
+6. Aplique a migration `20261125000007_google_tasks.sql`. Quem conectou antes desta versão precisa reconectar para autorizar o Tasks (o app avisa).
 
 ## 4. Notificações com o app fechado (Web Push)
 

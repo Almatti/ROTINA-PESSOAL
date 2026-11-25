@@ -35,6 +35,7 @@ Fica para a versão online: sincronização entre aparelhos, recuperação de se
 | **Início** | Saudação por horário, data, faixa semanal interativa, progresso do dia, “Nova ação” com linguagem natural, cartões clicáveis (agenda, tarefas, hábitos, finanças, sono, humor, água, metas, foco, conquistas) com ordem e visibilidade personalizáveis, notificações e pontos |
 | **Meu plano** | Tarefas, hábitos e compromissos do dia agrupados por Manhã/Tarde/Noite/Sem horário, filtros, contador de água inline, checklists expansíveis |
 | **Agenda** | Visões dia/semana/mês/ano, recorrência, categorias e cores, dia inteiro, lembretes, busca, arrastar e soltar, detecção de conflitos, Google Agenda bidirecional |
+| **Google Tasks** | Tarefas, hábitos do dia, provas, etapas de projeto, rotinas e manutenções na lista “Vilma” do Google Tasks, nos dois sentidos (concluir no Google conclui no app); itens com horário ganham alarme no Google Agenda |
 | **Tarefas** | Lista e Kanban, prioridades, subtarefas/checklist, recorrência, lembretes, tempo estimado, status (pendente, em andamento, concluída, atrasada*, cancelada), filtros, busca, ordenação e indicadores de produtividade |
 | **Hábitos / Tracker** | Frequências personalizadas, metas quantitativas e unidades, checklist interno, sequências, taxa de conclusão, grade de 30 dias, calendário, gráfico de consistência, hábitos para “largar” (dias livres e economia estimada) |
 | **Finanças** | Contas, saldo real, receitas/despesas, a pagar/receber, contas fixas e assinaturas (geração automática), cartões, faturas, parcelamento, transferências, orçamentos e limites, metas/reserva vinculadas a contas, categorias personalizadas, gráficos (rosca, barras, linha), saldo projetado, exportação CSV/PDF |
@@ -129,6 +130,6 @@ legacy/                protótipo original (HTML/JS) mantido como referência
 | Supabase (banco, auth, storage) | implementado; requer projeto e migrations |
 | Login com Google | implementado no app; requer ativar o provedor Google no Supabase |
 | Vilma | modo básico (sem IA) funciona sem configuração; Gemini gratuito com `GEMINI_API_KEY`; Claude com `ANTHROPIC_API_KEY`. Nenhum dos dois provedores foi testado contra a API real neste ambiente (testes com respostas simuladas do protocolo) |
-| Google Agenda | implementado (OAuth + sincronização bidirecional); requer credenciais Google Cloud; não testado contra o Google real |
+| Google Agenda + Google Tasks | implementado (OAuth + sincronização bidirecional + alarmes); requer credenciais Google Cloud com Calendar API e Tasks API; testado contra um Google simulado (13 testes), não contra o Google real |
 | Automações agendadas | implementado; requer `CRON_SECRET` e deploy na Vercel |
 | Notificações com o app fechado (Web Push) | implementado; requer chaves VAPID; para lembretes no minuto certo, agende o cron a cada 15 min (Vercel Pro ou agendador externo) |

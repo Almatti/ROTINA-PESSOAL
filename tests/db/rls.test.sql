@@ -143,6 +143,22 @@ do $$ begin
   assert (select count(*) from public.push_subscriptions) = 1, 'Bia deveria ver só a própria inscrição';
 end $$;
 
+-- 9c) Vínculos com o Google: só o servidor escreve; a usuária não forja vínculos nem altera tokens
+do $$ begin
+  begin
+    insert into public.google_links (target, source, source_id, remote_id) values ('tasks', 'task', gen_random_uuid(), 'x');
+    raise exception 'FALHA: usuária gravou vínculo do Google';
+  exception when insufficient_privilege then null;
+  end;
+  begin
+    update public.integrations set tasks_list_id = 'x';
+    raise exception 'FALHA: usuária alterou integração';
+  exception when insufficient_privilege then null;
+  end;
+  perform tasks_synced_at, scope from public.integrations; -- colunas de status podem ser lidas
+  assert (select count(*) from public.google_links) = 0;
+end $$;
+
 -- 10) anon não lê nada
 reset role;
 set local role anon;

@@ -10,7 +10,7 @@ import { LogoMark } from "@/components/brand/logo";
 import { Markdown } from "@/components/markdown";
 import { useSession } from "@/lib/session";
 import { useTable } from "@/lib/data/hooks";
-import { invalidate, mutate } from "@/lib/data/store";
+import { invalidate, mutate, notifyMutated } from "@/lib/data/store";
 import { getSupabase } from "@/lib/supabase/client";
 import { useToast } from "@/components/ui/toast";
 import { isLocalMode } from "@/lib/env";
@@ -106,7 +106,7 @@ function VilmaInner() {
         setMessages((m) => [...m, { role: "assistant", content: j.error ?? "Algo deu errado.", error: true }]);
       } else {
         setMessages((m) => [...m, { role: "assistant", content: j.reply, actions: [...(j.actions ?? []), ...(j.pending ?? []).map((p: { id: string; summary: string }) => ({ tool: "pending", pending_id: p.id, summary: p.summary }))] }]);
-        if ((j.actions ?? []).some((a: { ok: boolean }) => a.ok)) invalidate("tasks", "events", "transactions", "habits", "habit_logs", "sleep_logs", "water_logs", "shopping_lists", "shopping_items", "notes", "goals", "goal_steps");
+        if ((j.actions ?? []).some((a: { ok: boolean }) => a.ok)) { invalidate("tasks", "events", "transactions", "habits", "habit_logs", "sleep_logs", "water_logs", "shopping_lists", "shopping_items", "notes", "goals", "goal_steps"); notifyMutated("tasks", "events", "habit_logs"); }
       }
       invalidate("conversations");
     } catch {
@@ -131,7 +131,7 @@ function VilmaInner() {
         if (note) r.reply = `${r.reply}\n\n${note}`;
         if (conv) await sb.from("messages").insert([{ conversation_id: conv, role: "user", content: msg }, { conversation_id: conv, role: "assistant", content: r.reply, actions: r.actions }]);
         setMessages((m) => [...m, { role: "assistant", content: r.reply, actions: r.actions }]);
-        if (r.actions.some((a) => a.ok)) invalidate("tasks", "events", "transactions", "sleep_logs", "water_logs", "shopping_lists", "shopping_items", "notes");
+        if (r.actions.some((a) => a.ok)) { invalidate("tasks", "events", "transactions", "sleep_logs", "water_logs", "shopping_lists", "shopping_items", "notes"); notifyMutated("tasks", "events"); }
         invalidate("conversations");
       } catch {
         setMessages((m) => [...m, { role: "assistant", content: "Não consegui registrar agora. Tente de novo.", error: true }]);
@@ -160,6 +160,7 @@ function VilmaInner() {
     setResolved((r) => ({ ...r, [id]: decision === "cancelar" ? "cancelada" : j.ok ? "confirmada" : "falhou" }));
     setMessages((m) => [...m, { role: "assistant", content: decision === "cancelar" ? "Tudo bem, cancelei. 👍" : j.ok ? `✅ Feito: ${j.summary}` : `Não consegui concluir: ${j.error}` }]);
     invalidate("tasks", "events", "transactions");
+    notifyMutated("tasks", "events");
   }
 
   function toggleVoice() {
