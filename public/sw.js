@@ -3,7 +3,7 @@
  * - Assets estáticos do Next: cache-first (imutáveis por hash).
  * - Nunca armazena respostas de /api nem do Supabase (dados pessoais).
  */
-const VERSION = "vilma-v3";
+const VERSION = "vilma-v4";
 // base do escopo (permite publicar em subpasta, ex.: GitHub Pages)
 const BASE = new URL(self.registration.scope).pathname.replace(/\/$/, "");
 const SHELL = ["/offline", "/offline/", "/icons/icon-192.png", "/icons/icon-512.png", "/icons/icon.svg"].map((p) => BASE + p);

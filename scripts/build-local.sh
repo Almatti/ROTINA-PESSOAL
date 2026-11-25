@@ -20,4 +20,6 @@ mv src/middleware.ts "$STASH/middleware.ts"
 rm -rf .next out
 NEXT_PUBLIC_LOCAL_MODE=1 NEXT_TELEMETRY_DISABLED=1 npx next build
 touch out/.nojekyll
+# a Vercel não deve tentar publicar a branch gh-pages (site estático do GitHub Pages)
+echo '{ "git": { "deploymentEnabled": false } }' > out/vercel.json
 echo "✔ versão local gerada em ./out"
