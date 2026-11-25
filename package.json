@@ -1,0 +1,46 @@
+{
+  "name": "vilma-minha-vida",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Vilma — Minha Vida: central inteligente de organização pessoal (PWA).",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:db": "bash scripts/test-db.sh",
+    "test:e2e": "playwright test --trace off",
+    "icons": "node scripts/generate-icons.mjs"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^1.14.0",
+    "@supabase/ssr": "^0.12.7",
+    "@supabase/supabase-js": "^2.119.2",
+    "clsx": "^2.1.1",
+    "date-fns": "^4.4.0",
+    "framer-motion": "^14.14.0",
+    "jspdf": "^4.2.1",
+    "jspdf-autotable": "^5.0.9",
+    "lucide-react": "^1.79.0",
+    "next": "15.5.29",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "recharts": "^3.11.1",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0",
+    "@tailwindcss/postcss": "^4.3.5",
+    "@types/node": "^22.20.5",
+    "@types/react": "^19.1.0",
+    "@types/react-dom": "^19.1.0",
+    "eslint": "^9.0.0",
+    "eslint-config-next": "15.5.29",
+    "tailwindcss": "^4.3.5",
+    "typescript": "5.9.3",
+    "vitest": "^3.2.7"
+  }
+}
