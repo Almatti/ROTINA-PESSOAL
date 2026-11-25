@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Flower2, ShieldCheck, Droplet, Trash2, Info } from "lucide-react";
 import { PageHeader } from "@/components/layout/page-header";
-import { Button, Card, Field, Input, Select, Textarea, Toggle, SectionTitle, Stat, EmptyState } from "@/components/ui/primitives";
+import { Button, Card, Field, Select, Textarea, Toggle, SectionTitle, Stat, EmptyState } from "@/components/ui/primitives";
 import { Sheet, ConfirmDialog } from "@/components/ui/sheet";
 import { MonthGrid, MonthNav } from "@/components/calendar-bits";
 import { useSession } from "@/lib/session";

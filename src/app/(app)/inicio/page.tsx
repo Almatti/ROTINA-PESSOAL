@@ -6,7 +6,7 @@ import { useSession } from "@/lib/session";
 import { useMenu } from "@/components/layout/menu-context";
 import { useQuickAdd } from "@/components/layout/quick-add";
 import { WeekStrip } from "@/components/calendar-bits";
-import { DayProgress, useWidgetRenderer } from "@/components/dashboard/widgets";
+import { DayProgress, renderWidget } from "@/components/dashboard/widgets";
 import { DEFAULT_WIDGETS, resolveWidgets } from "@/components/dashboard/widgets-config";
 import { Sheet } from "@/components/ui/sheet";
 import { Button, Toggle } from "@/components/ui/primitives";
@@ -36,7 +36,6 @@ export default function Dashboard() {
   const { data: notifications = [] } = useNotifications();
   const { total: points } = usePoints();
   const unread = notifications.filter((n) => !n.read_at).length;
-  const render = useWidgetRenderer(day);
   const widgets = resolveWidgets(profile?.dashboard_widgets);
   const [draft, setDraft] = useState(widgets);
   const gamification = profile?.modules?.gamificacao !== false;
@@ -101,7 +100,7 @@ export default function Dashboard() {
         <button onClick={() => { setDraft(widgets); setCustomize(true); }} className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary"><SlidersHorizontal className="size-4" aria-hidden />Personalizar</button>
       </div>
       <div className="mt-2 grid grid-cols-1 gap-3 min-[380px]:grid-cols-2 lg:grid-cols-3">
-        {widgets.filter((w) => w.visible && (w.key !== "conquistas" || gamification)).map((w) => <div key={w.key}>{render(w.key)}</div>)}
+        {widgets.filter((w) => w.visible && (w.key !== "conquistas" || gamification)).map((w) => <div key={w.key}>{renderWidget(w.key, day)}</div>)}
       </div>
 
       <Sheet open={customize} onClose={() => setCustomize(false)} title="Personalizar tela inicial" footer={

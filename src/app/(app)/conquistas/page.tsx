@@ -2,7 +2,7 @@
 import { Trophy, Sparkles, Lock } from "lucide-react";
 import Link from "next/link";
 import { PageHeader } from "@/components/layout/page-header";
-import { Card, ProgressBar, SectionTitle, Stat, Button, cn } from "@/components/ui/primitives";
+import { Card, SectionTitle, Stat, Button, cn } from "@/components/ui/primitives";
 import { useSession } from "@/lib/session";
 import { useTable, usePoints } from "@/lib/data/hooks";
 import { levelFromPoints, AVATAR_EMOJIS, AVATAR_FRAMES, LEVEL_TITLES } from "@/lib/domain/gamification";

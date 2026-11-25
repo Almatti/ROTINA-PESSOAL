@@ -38,7 +38,7 @@ export default function TasksPage() {
   const [creating, setCreating] = useState(false);
   const [deleting, setDeleting] = useState<Task | null>(null);
 
-  const all = tasks ?? [];
+  const all = useMemo(() => tasks ?? [], [tasks]);
   const stats = productivityStats(all, today, (iso) => localDateISO(new Date(iso), tz));
 
   const list = useMemo(() => {

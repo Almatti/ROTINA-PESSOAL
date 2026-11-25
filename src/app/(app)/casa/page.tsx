@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { House, Plus, Trash2, Check, ShoppingCart, Pencil, Wrench, ChevronLeft, ChevronRight } from "lucide-react";
+import { House, Plus, Trash2, Check, ShoppingCart, Wrench, ChevronLeft, ChevronRight } from "lucide-react";
 import { PageHeader } from "@/components/layout/page-header";
 import { Button, Card, Field, Input, Select, Textarea, Segmented, EmptyState, Badge, SectionTitle, cn } from "@/components/ui/primitives";
 import { Sheet, ConfirmDialog } from "@/components/ui/sheet";

@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { Heart, Moon, Smile, Droplets, Dumbbell, Flower2, Timer, ChevronRight } from "lucide-react";
 import { PageHeader } from "@/components/layout/page-header";
-import { Card, ProgressBar, Ring } from "@/components/ui/primitives";
+import { ProgressBar, Ring } from "@/components/ui/primitives";
 import { useSession } from "@/lib/session";
 import { useSleepLogs, useMoodLogs, useWaterLogs, useTable } from "@/lib/data/hooks";
 import { sleepStats } from "@/lib/domain/sleep";

@@ -275,8 +275,8 @@ export function DayProgress({ day }: { day: string }) {
   );
 }
 
-export function useWidgetRenderer(day: string) {
-  return (key: string) => {
+export function renderWidget(key: string, day: string) {
+  {
     switch (key) {
       case "agenda": return <AgendaWidget day={day} />;
       case "tarefas": return <TasksWidget day={day} />;
@@ -290,7 +290,7 @@ export function useWidgetRenderer(day: string) {
       case "conquistas": return <PointsWidget />;
       default: return null;
     }
-  };
+  }
 }
 
 export { Card };
