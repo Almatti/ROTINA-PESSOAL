@@ -34,7 +34,7 @@ export function TransactionForm({ tx, initialType = "despesa", onDone, defaults 
   const activeAccounts = accounts.filter((a) => !a.archived);
   const activeCards = cards.filter((c) => !c.archived);
 
-  const [amount, setAmount] = useState(tx ? tx.amount.replace(".", ",") : defaults?.amountCents ? (defaults.amountCents / 100).toFixed(2).replace(".", ",") : "");
+  const [amount, setAmount] = useState(tx ? Number(tx.amount).toFixed(2).replace(".", ",") : defaults?.amountCents ? (defaults.amountCents / 100).toFixed(2).replace(".", ",") : "");
   const [description, setDescription] = useState(tx?.description ?? defaults?.description ?? "");
   const [categoryId, setCategoryId] = useState(tx?.category_id ?? "");
   // origem: conta ou cartão (cartão só para despesa)

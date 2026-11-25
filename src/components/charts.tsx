@@ -62,10 +62,10 @@ export function Bars({ data, xKey, series, height = 180, goal, format, stacked }
   return (
     <div style={{ height }} className="w-full">
       <ResponsiveContainer>
-        <BarChart data={data} margin={{ top: 16, right: 4, left: -18, bottom: 0 }} barGap={2}>
+        <BarChart data={data} margin={{ top: 16, right: 4, left: 0, bottom: 0 }} barGap={2}>
           <CartesianGrid vertical={false} stroke="var(--chart-grid)" />
           <XAxis dataKey={xKey} {...axis} />
-          <YAxis {...axis} tickFormatter={format ? (v) => format(Number(v)) : undefined} width={50} />
+          <YAxis {...axis} tickFormatter={format ? (v) => format(Number(v)) : undefined} width={56} />
           <Tooltip cursor={{ fill: "var(--surface-2)" }} content={<TipBox format={format} />} />
           {goal && <ReferenceLine y={goal.value} stroke="var(--muted)" strokeDasharray="4 4" label={{ value: goal.label, position: "insideTopRight", fill: "var(--muted)", fontSize: 10 }} />}
           {series.map((s) => (
@@ -81,10 +81,10 @@ export function Lines({ data, xKey, series, height = 180, format }: { data: Reco
   return (
     <div style={{ height }} className="w-full">
       <ResponsiveContainer>
-        <LineChart data={data} margin={{ top: 12, right: 8, left: -18, bottom: 0 }}>
+        <LineChart data={data} margin={{ top: 12, right: 8, left: 0, bottom: 0 }}>
           <CartesianGrid vertical={false} stroke="var(--chart-grid)" />
           <XAxis dataKey={xKey} {...axis} />
-          <YAxis {...axis} tickFormatter={format ? (v) => format(Number(v)) : undefined} width={50} />
+          <YAxis {...axis} tickFormatter={format ? (v) => format(Number(v)) : undefined} width={56} />
           <Tooltip content={<TipBox format={format} />} cursor={{ stroke: "var(--line)" }} />
           {series.map((s) => (
             <Line key={s.key} type="monotone" dataKey={s.key} name={s.label} stroke={s.color} strokeWidth={2} dot={{ r: 3, strokeWidth: 0, fill: s.color }} activeDot={{ r: 5, stroke: "var(--surface)", strokeWidth: 2 }} connectNulls />

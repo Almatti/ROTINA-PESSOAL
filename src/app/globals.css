@@ -25,7 +25,7 @@
   --surface-3: #ebe3f5;
   --ink: #312a44;
   --ink-soft: #5e5372;
-  --muted: #88708e;
+  --muted: #6e5975; /* Dusky Lilac escurecido para contraste AA (texto) */
   --line: #e7def1;
   --primary: #7451a6;
   --primary-ink: #ffffff;
@@ -35,13 +35,13 @@
   --nav-ink: #cfc3dd;
   --night: linear-gradient(150deg, #3b2f5c 0%, #2a2140 55%, #1f1830 100%);
 
-  --success: #2f9e6e;
+  --success: #1e7d55;
   --success-soft: #e3f5ec;
-  --error: #c9405f;
+  --error: #b3324f;
   --error-soft: #fbe6ec;
-  --warning: #c98a2c;
+  --warning: #8a5a12;
   --warning-soft: #fbf0dd;
-  --info: #4b7be0;
+  --info: #2f62c9;
   --info-soft: #e5edfc;
 
   /* Paleta categórica de gráficos (validada: CVD, croma e banda de luminosidade) */

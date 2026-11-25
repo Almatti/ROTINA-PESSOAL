@@ -21,9 +21,9 @@ export interface Profile {
   work_end: string | null;
   sleep_goal_minutes: number;
   water_goal_ml: number;
-  monthly_income_goal: string | null;
-  monthly_savings_goal: string | null;
-  monthly_budget: string | null;
+  monthly_income_goal: number | string | null;
+  monthly_savings_goal: number | string | null;
+  monthly_budget: number | string | null;
   notification_prefs: Record<string, boolean>;
   dashboard_widgets: { key: string; visible: boolean }[];
   modules: Record<string, boolean>;
@@ -125,7 +125,7 @@ export interface FinancialAccount {
   id: string;
   name: string;
   type: "corrente" | "poupanca" | "carteira" | "investimento" | "reserva_emergencia";
-  initial_balance: string;
+  initial_balance: number | string;
   color: string;
   include_in_total: boolean;
   archived: boolean;
@@ -135,7 +135,7 @@ export interface CreditCard {
   id: string;
   name: string;
   brand: string | null;
-  limit_amount: string;
+  limit_amount: number | string;
   closing_day: number;
   due_day: number;
   color: string;
@@ -146,7 +146,7 @@ export interface CreditCard {
 export interface Transaction {
   id: string;
   type: "receita" | "despesa" | "transferencia" | "pagamento_fatura";
-  amount: string;
+  amount: number | string;
   description: string;
   category_id: string | null;
   account_id: string | null;
@@ -168,7 +168,7 @@ export interface RecurringTransaction {
   id: string;
   type: "receita" | "despesa";
   description: string;
-  amount: string;
+  amount: number | string;
   category_id: string | null;
   account_id: string | null;
   card_id: string | null;
@@ -186,7 +186,7 @@ export interface Budget {
   id: string;
   month: string;
   category_id: string | null;
-  limit_amount: string;
+  limit_amount: number | string;
 }
 
 export interface Goal {
@@ -195,8 +195,8 @@ export interface Goal {
   description: string | null;
   horizon: "semanal" | "mensal" | "anual" | "longo_prazo";
   area: "pessoal" | "profissional" | "financeira" | "saude" | "estudos" | "relacionamentos";
-  target_value: string | null;
-  current_value: string;
+  target_value: number | string | null;
+  current_value: number | string;
   unit: string | null;
   due_date: string | null;
   status: "ativa" | "concluida" | "pausada" | "arquivada";

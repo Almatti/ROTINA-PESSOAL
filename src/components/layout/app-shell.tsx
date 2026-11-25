@@ -119,7 +119,9 @@ export function AppShell({ children }: { children: ReactNode }) {
     if (!loading && user && profile && !profile.onboarding_completed) router.replace("/onboarding");
   }, [loading, user, profile, router]);
 
-  useEffect(() => setMenuOpen(false), [path]);
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [path]);
 
   return (
     <MenuContext.Provider value={{ openMenu: () => setMenuOpen(true) }}>

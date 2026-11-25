@@ -48,7 +48,9 @@ function VilmaInner() {
   const speechSupported = typeof window !== "undefined" && ("SpeechRecognition" in window || "webkitSpeechRecognition" in window);
   const consent = !!profile?.ai_consent_at;
 
-  useEffect(() => endRef.current?.scrollIntoView({ behavior: "smooth" }), [messages, busy]);
+  useEffect(() => {
+    endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+  }, [messages, busy]);
 
   useEffect(() => {
     const p = params.get("pedido");

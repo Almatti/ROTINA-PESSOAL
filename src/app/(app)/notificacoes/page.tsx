@@ -14,7 +14,9 @@ export default function NotificationsPage() {
   const toast = useToast();
   const { data: items = [] } = useNotifications();
   const [perm, setPerm] = useState<string>("default");
-  useEffect(() => setPerm(typeof Notification === "undefined" ? "unsupported" : Notification.permission), []);
+  useEffect(() => {
+    setPerm(typeof Notification === "undefined" ? "unsupported" : Notification.permission);
+  }, []);
   const unread = items.filter((n) => !n.read_at);
   return (
     <>

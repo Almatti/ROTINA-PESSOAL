@@ -28,7 +28,9 @@ export default function SettingsPage() {
   const [busy, setBusy] = useState<string | null>(null);
   const [revokeAI, setRevokeAI] = useState(false);
   const [disconnect, setDisconnect] = useState(false);
-  useEffect(() => setPerm(typeof Notification === "undefined" ? "unsupported" : Notification.permission), []);
+  useEffect(() => {
+    setPerm(typeof Notification === "undefined" ? "unsupported" : Notification.permission);
+  }, []);
   useEffect(() => {
     const p = new URLSearchParams(window.location.search);
     if (p.get("google") === "ok") toast.show("Google Agenda conectado! Sincronizando…", "success");

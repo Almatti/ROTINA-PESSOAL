@@ -1,7 +1,9 @@
 "use client";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { ReactNode } from "react";
-import { addDays, startOfWeek, WEEKDAY_SHORT, WEEKDAY_LETTER, monthGrid, formatMonthYear, addMonths, monthStart, MONTHS } from "@/lib/domain/dates";
+import { addDays, startOfWeek, WEEKDAY_SHORT, WEEKDAY_LETTER, monthGrid, formatMonthYear, addMonths, monthStart, MONTHS, formatDateBR, weekdayOf, WEEKDAY_LONG } from "@/lib/domain/dates";
+
+const formatDateBRLong = (d: string) => `${WEEKDAY_LONG[weekdayOf(d)]}, ${formatDateBR(d)}`;
 import { cn } from "@/components/ui/primitives";
 
 /** Faixa semanal interativa (como nas referências): setas + 7 dias, dia selecionado em destaque escuro. */
@@ -50,19 +52,19 @@ export function MonthGrid({ month, today, selected, onSelect, renderDay, label }
   const days = monthGrid(month);
   const mm = month.slice(0, 7);
   return (
-    <div role="grid" aria-label={label ?? formatMonthYear(month)}>
-      <div className="grid grid-cols-7 pb-1 text-center text-xs font-semibold text-muted" role="row">
-        {WEEKDAY_LETTER.map((d, i) => <span key={i} role="columnheader">{d}</span>)}
+    <div role="group" aria-label={label ?? formatMonthYear(month)}>
+      <div className="grid grid-cols-7 pb-1 text-center text-xs font-semibold text-muted" aria-hidden>
+        {WEEKDAY_LETTER.map((d, i) => <span key={i}>{d}</span>)}
       </div>
-      <div className="grid grid-cols-7 gap-y-1" role="rowgroup">
+      <div className="grid grid-cols-7 gap-y-1">
         {days.map((d) => {
           const inMonth = d.slice(0, 7) === mm;
           return (
             <button
               key={d}
-              role="gridcell"
-              aria-selected={selected === d}
-              aria-label={`${Number(d.slice(8))}${d === today ? ", hoje" : ""}`}
+              type="button"
+              aria-pressed={selected === d}
+              aria-label={`${formatDateBRLong(d)}${d === today ? ", hoje" : ""}`}
               onClick={() => onSelect?.(d)}
               className={cn("relative flex min-h-12 flex-col items-center justify-start rounded-2xl pt-1 text-sm transition", !inMonth && "opacity-35", selected === d && "bg-primary-soft", d === today && "ring-1.5 ring-primary/50 ring-1")}
             >

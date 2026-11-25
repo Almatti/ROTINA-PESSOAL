@@ -35,7 +35,7 @@ function FinanceInner() {
   const [accountForm, setAccountForm] = useState<FinancialAccount | null | "new">(null);
   const [cardForm, setCardForm] = useState<CreditCard | null | "new">(null);
   const [recForm, setRecForm] = useState<{ item?: RecurringTransaction; sub?: boolean } | null>(null);
-  const [budgetForm, setBudgetForm] = useState<{ categoryId?: string | null; current?: { id: string; limit_amount: string } } | null>(null);
+  const [budgetForm, setBudgetForm] = useState<{ categoryId?: string | null; current?: { id: string; limit_amount: string | number } } | null>(null);
   const [confirmDel, setConfirmDel] = useState<{ table: string; id: string; label: string; group?: string | null } | null>(null);
 
   const { data: accounts = [], loading: la } = useAccounts();

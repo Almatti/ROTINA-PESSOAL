@@ -18,7 +18,7 @@ export function AccountForm({ account, onDone }: { account?: FinancialAccount | 
   const toast = useToast();
   const [name, setName] = useState(account?.name ?? "");
   const [type, setType] = useState(account?.type ?? "corrente");
-  const [balance, setBalance] = useState(account ? account.initial_balance.replace(".", ",") : "");
+  const [balance, setBalance] = useState(account ? String(account.initial_balance).replace(".", ",") : "");
   const [include, setInclude] = useState(account?.include_in_total ?? true);
   const [color, setColor] = useState(account?.color ?? "#7451A6");
   const [err, setErr] = useState<Record<string, string>>({});
@@ -57,7 +57,7 @@ export function CardForm({ card, onDone }: { card?: CreditCard | null; onDone: (
   const toast = useToast();
   const { data: accounts = [] } = useAccounts();
   const [name, setName] = useState(card?.name ?? "");
-  const [limit, setLimit] = useState(card ? card.limit_amount.replace(".", ",") : "");
+  const [limit, setLimit] = useState(card ? String(card.limit_amount).replace(".", ",") : "");
   const [closing, setClosing] = useState(String(card?.closing_day ?? 5));
   const [due, setDue] = useState(String(card?.due_day ?? 12));
   const [account, setAccount] = useState(card?.payment_account_id ?? "");
@@ -108,7 +108,7 @@ export function RecurringForm({ item, onDone, subscription }: { item?: Recurring
   const [type, setType] = useState<"receita" | "despesa">(item?.type ?? "despesa");
   const { data: categories } = useCategories(type);
   const [description, setDescription] = useState(item?.description ?? "");
-  const [amount, setAmount] = useState(item ? item.amount.replace(".", ",") : "");
+  const [amount, setAmount] = useState(item ? String(item.amount).replace(".", ",") : "");
   const [frequency, setFrequency] = useState(item?.frequency ?? "mensal");
   const [day, setDay] = useState(String(item?.day_of_month ?? Number(today.slice(8))));
   const [start, setStart] = useState(item?.start_date ?? today);
@@ -175,11 +175,11 @@ export function RecurringForm({ item, onDone, subscription }: { item?: Recurring
   );
 }
 
-export function BudgetForm({ month, categoryId, current, onDone }: { month: string; categoryId?: string | null; current?: { id: string; limit_amount: string } | null; onDone: () => void }) {
+export function BudgetForm({ month, categoryId, current, onDone }: { month: string; categoryId?: string | null; current?: { id: string; limit_amount: string | number } | null; onDone: () => void }) {
   const toast = useToast();
   const { data: categories } = useCategories("despesa");
   const [cat, setCat] = useState(categoryId ?? "");
-  const [limit, setLimit] = useState(current ? current.limit_amount.replace(".", ",") : "");
+  const [limit, setLimit] = useState(current ? String(current.limit_amount).replace(".", ",") : "");
   const [saving, setSaving] = useState(false);
   return (
     <form noValidate className="space-y-4" onSubmit={async (e) => {

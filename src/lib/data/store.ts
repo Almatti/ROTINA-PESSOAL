@@ -280,11 +280,16 @@ const REALTIME_TABLES = ["tasks", "subtasks", "events", "habits", "habit_logs", 
 
 export function startSync(userId: string, onFlush?: (r: { sent: number; failed: string[] }) => void) {
   const sb = getSupabase();
-  const channel = sb.channel(`sync:${userId}`);
-  for (const table of REALTIME_TABLES) {
-    channel.on("postgres_changes", { event: "*", schema: "public", table, filter: `user_id=eq.${userId}` }, () => invalidate(table));
+  // tópico único por montagem: evita reutilizar um canal já inscrito (StrictMode/remontagens)
+  const channel = sb.channel(`sync:${userId}:${Math.random().toString(36).slice(2, 10)}`);
+  try {
+    for (const table of REALTIME_TABLES) {
+      channel.on("postgres_changes", { event: "*", schema: "public", table, filter: `user_id=eq.${userId}` }, () => invalidate(table));
+    }
+    channel.subscribe();
+  } catch {
+    // Realtime indisponível: o app continua funcionando com atualização ao reconectar/navegar.
   }
-  channel.subscribe();
   const onOnline = async () => {
     const r = await flushOutbox();
     if (r.sent || r.failed.length) onFlush?.(r);
