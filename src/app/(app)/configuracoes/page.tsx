@@ -136,8 +136,8 @@ export default function SettingsPage() {
       <SectionTitle><Shield className="mr-2 inline size-4 text-primary" aria-hidden /><span id="privacidade">Privacidade e dados (LGPD)</span></SectionTitle>
       <Card className="space-y-3">
         <div className="flex items-center justify-between gap-3">
-          <div><p className="text-sm font-semibold">Assistente Vilma (IA)</p><p className="text-xs text-muted">{profile.ai_consent_at ? `Autorizada em ${new Date(profile.ai_consent_at).toLocaleDateString("pt-BR")}` : "Não autorizada"}</p></div>
-          {profile.ai_consent_at ? <Button size="sm" variant="ghost" onClick={() => setRevokeAI(true)}>Revogar</Button> : <Button size="sm" variant="soft" onClick={async () => { await updateProfile({ ai_consent_at: new Date().toISOString() }); await getSupabase().from("consents").insert({ kind: "ia", granted: true }); }}>Autorizar</Button>}
+          <div><p className="text-sm font-semibold">Assistente Vilma (IA)</p><p className="text-xs text-muted">{profile.ai_consent_at ? `Autorizada (${profile.ai_consent_provider === "gemini" ? "Google Gemini" : "Anthropic"}) em ${new Date(profile.ai_consent_at).toLocaleDateString("pt-BR")}` : "Não autorizada — a Vilma funciona no modo básico, sem IA"}</p></div>
+          {profile.ai_consent_at ? <Button size="sm" variant="ghost" onClick={() => setRevokeAI(true)}>Revogar</Button> : <Link href="/vilma" className="rounded-pill bg-primary-soft px-3 py-1.5 text-sm font-semibold text-primary-soft-ink">Ativar</Link>}
         </div>
         <Button variant="outline" className="w-full" loading={busy === "export"} icon={<Download className="size-4" />} onClick={async () => {
           setBusy("export");
@@ -162,7 +162,7 @@ export default function SettingsPage() {
       <Button variant="outline" className="mt-6 w-full" icon={<LogOut className="size-4" />} onClick={signOut}>Sair da conta</Button>
       <p className="mt-4 text-center text-xs text-muted">Vilma — Minha Vida · {user?.email}</p>
 
-      <ConfirmDialog open={revokeAI} title="Revogar autorização da IA?" message="A Vilma deixará de responder até você autorizar novamente. Seu histórico de conversas permanece até que você o exclua." confirmLabel="Revogar" onCancel={() => setRevokeAI(false)} onConfirm={async () => { await updateProfile({ ai_consent_at: null }); await getSupabase().from("consents").insert({ kind: "ia", granted: false }); setRevokeAI(false); }} />
+      <ConfirmDialog open={revokeAI} title="Revogar autorização da IA?" message="A Vilma volta para o modo básico (sem IA) até você autorizar novamente. Seu histórico de conversas permanece até que você o exclua." confirmLabel="Revogar" onCancel={() => setRevokeAI(false)} onConfirm={async () => { await updateProfile({ ai_consent_at: null, ai_consent_provider: null }); await getSupabase().from("consents").insert({ kind: profile.ai_consent_provider === "gemini" ? "ia_google" : "ia", granted: false }); setRevokeAI(false); }} />
       <ConfirmDialog open={disconnect} title="Desconectar Google Agenda?" message="O acesso é revogado e os tokens apagados. Os compromissos já importados continuam no app." confirmLabel="Desconectar" onCancel={() => setDisconnect(false)} onConfirm={async () => { const r = await fetch("/api/google/disconnect", { method: "POST" }); setDisconnect(false); invalidate("integrations"); toast.show(r.ok ? "Google Agenda desconectado." : "Falha ao desconectar.", r.ok ? "success" : "error"); }} />
       <ConfirmDialog
         open={deleting}

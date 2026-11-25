@@ -48,7 +48,11 @@ Abra **Vilma** e escreva ou toque no 🎤 para falar. Exemplos:
 - “Monte uma lista de compras para o churrasco”
 
 Ela registra as informações direto no app e mostra o que foi feito. **Para apagar algo ou mudar várias coisas de uma vez, ela sempre pede sua confirmação** — aparece um cartão com os botões Confirmar/Cancelar.
-Na primeira vez, é preciso autorizar o uso da IA. Seu diário e os dados do ciclo **nunca** são enviados à IA.
+A Vilma tem dois modos:
+- **Modo básico (sem IA):** entende comandos simples (registrar gasto, compromisso, tarefa, sono, água; mostrar pendências, gastos do mês e resumos). Nada sai do seu banco.
+- **Com IA:** conversa livremente e entende pedidos complexos. Na primeira vez, ela pede sua autorização. Se a IA gratuita atingir o limite do dia, a Vilma responde no modo básico até o limite voltar.
+
+Dá para alternar no rodapé da conversa (“Usar modo básico” / “Ligar a IA”). Seu diário e os dados do ciclo **nunca** são enviados à IA.
 
 ## 5. Módulos
 
@@ -85,6 +89,6 @@ Em **Configurações › Privacidade** você pode: revogar a autorização da IA
 
 ## 9. Dúvidas comuns
 
-- *A Vilma diz que não está configurada.* — A pessoa responsável pelo app precisa cadastrar a chave da IA no servidor.
+- *A Vilma só entende comandos simples.* — Ela está no modo básico. Para a IA, é preciso cadastrar uma chave (Gemini gratuito ou Anthropic) na Vercel.
 - *Não recebo notificações com o app fechado.* — Ative em Configurações › Notificações › **Receber com o app fechado** e toque em “Enviar notificação de teste”. No iPhone, primeiro instale o app na Tela de Início.
 - *Meu saldo está diferente do banco.* — Confira o saldo inicial da conta (Finanças › Contas › editar) e se todos os gastos foram registrados.

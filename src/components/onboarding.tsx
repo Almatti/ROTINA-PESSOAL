@@ -82,6 +82,7 @@ export function Onboarding() {
         theme: f.theme,
         modules: { ciclo: interests.includes("ciclo") && f.cycleConsent, gamificacao: f.gamificacao, treinos: true, estudos: true, trabalho: true, casa: true },
         ai_consent_at: f.ai ? now : null,
+        ai_consent_provider: f.ai ? "anthropic" : null,
         cycle_consent_at: interests.includes("ciclo") && f.cycleConsent ? now : null,
         privacy_accepted_at: profile?.privacy_accepted_at ?? now,
         onboarding_completed: true,

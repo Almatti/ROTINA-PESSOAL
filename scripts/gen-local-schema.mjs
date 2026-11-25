@@ -44,6 +44,10 @@ while ((m = re.exec(sql))) {
   }
   tables[name] = t;
 }
+// colunas adicionadas depois (alter table ... add column)
+for (const a of sql.matchAll(/alter table public\.(\w+) add column (?:if not exists )?(\w+) ([a-z0-9_]+)/g)) {
+  if (tables[a[1]] && !tables[a[1]].columns[a[2]]) tables[a[1]].columns[a[2]] = { type: a[3], default: null };
+}
 // índices únicos criados fora da tabela
 for (const u of sql.matchAll(/create unique index \w+ on public\.(\w+) \(([^)]+)\)/g)) {
   const cols = u[2].split(",").map((s) => s.trim());

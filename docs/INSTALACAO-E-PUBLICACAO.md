@@ -23,11 +23,19 @@ Este guia leva o app do zero até publicado na internet. Tempo estimado: 30–60
 6. (Recomendado) **Authentication › Email Templates**: traduza os e-mails de confirmação e recuperação para português.
 7. **Realtime**: a migration adiciona as tabelas principais à publicação `supabase_realtime` (sincronização entre dispositivos). Confira em *Database › Replication*.
 
-## 2. Assistente Vilma (Anthropic)
+## 2. Assistente Vilma (três modos)
 
-1. Crie uma chave em <https://console.anthropic.com> (*API Keys*).
-2. Configure `ANTHROPIC_API_KEY`. Opcional: `ANTHROPIC_MODEL` (padrão `claude-opus-5-5`).
-3. Custos: cobrados por uso pela Anthropic. O app limita cada usuária a 40 mensagens/hora (ajustável em `src/app/api/vilma/route.ts`).
+| Modo | Quando é usado | Custo |
+|---|---|---|
+| **Básico (sem IA)** | nenhuma chave configurada, ou a usuária escolheu “modo básico”, ou a IA ficou indisponível | grátis; nada sai do banco |
+| **Gemini** | `GEMINI_API_KEY` configurada e sem chave da Anthropic | plano gratuito do Google (com limites diários; o Google pode usar o conteúdo para melhorar produtos) |
+| **Claude (Anthropic)** | `ANTHROPIC_API_KEY` configurada (tem prioridade) | pago por uso |
+
+**Gemini (grátis):** em <https://aistudio.google.com> › *Get API key* › *Create API key*; cadastre `GEMINI_API_KEY` na Vercel (Production) e publique de novo. Opcional: `GEMINI_MODEL` (padrão `gemini-flash-latest`). Quando o limite gratuito acaba, a Vilma responde no modo básico automaticamente.
+
+**Anthropic:** crie uma chave em <https://console.anthropic.com> (*API Keys*) e configure `ANTHROPIC_API_KEY`. Opcional: `ANTHROPIC_MODEL` (padrão `claude-opus-5-5`).
+
+O consentimento da usuária é pedido separadamente para cada provedor. O app limita cada usuária a 40 mensagens/hora com IA (ajustável em `src/app/api/vilma/route.ts`).
 
 ## 3. Google Agenda (sincronização)
 

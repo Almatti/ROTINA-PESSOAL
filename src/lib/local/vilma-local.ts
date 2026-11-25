@@ -131,7 +131,7 @@ export async function localAssistant(message: string, ctx: { sb: SupabaseClient;
     return { reply: error ? "Não consegui criar a tarefa." : "Tarefa criada! ✅", actions };
   }
   return {
-    reply: "No modo local eu entendo comandos simples (a IA completa chega com a versão online). Experimente:\n- “gastei 45,90 no mercado”\n- “academia amanhã às 7h”\n- “lembre-me de pagar a internet dia 10”\n- “quais tarefas estão pendentes?”\n- “quanto gastei este mês?”\n- “faça um resumo da minha semana”",
+    reply: "No modo básico eu entendo comandos simples. Experimente:\n- “gastei 45,90 no mercado”\n- “academia amanhã às 7h”\n- “lembre-me de pagar a internet dia 10”\n- “quais tarefas estão pendentes?”\n- “quanto gastei este mês?”\n- “faça um resumo da minha semana”",
     actions,
   };
 }

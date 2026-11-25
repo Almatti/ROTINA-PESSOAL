@@ -48,7 +48,17 @@ function VilmaInner() {
   const endRef = useRef<HTMLDivElement>(null);
   const { data: conversations = [] } = useTable<Conv>("conversations", { order: "updated_at", ascending: false, limit: 50 });
   const speechSupported = typeof window !== "undefined" && ("SpeechRecognition" in window || "webkitSpeechRecognition" in window);
-  const consent = !!profile?.ai_consent_at;
+  // provedor de IA ativo no servidor: undefined = carregando, null = nenhum (Vilma básica)
+  const [provider, setProvider] = useState<"anthropic" | "gemini" | null | undefined>(isLocalMode ? null : undefined);
+  const [basicChoice, setBasicChoice] = useState(false);
+  const consent = !!profile?.ai_consent_at && (profile.ai_consent_provider ?? "anthropic") === provider;
+  const useAI = !isLocalMode && !!provider && consent && !basicChoice;
+
+  useEffect(() => {
+    if (isLocalMode) return;
+    try { setBasicChoice(localStorage.getItem("vilma:basica") === "1"); } catch {}
+    fetch("/api/vilma/status", { cache: "no-store" }).then((r) => r.json()).then((j) => setProvider(j.provider ?? null)).catch(() => setProvider(null));
+  }, []);
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
@@ -75,33 +85,23 @@ function VilmaInner() {
     const msg = text.trim();
     if (!msg || busy) return;
     if (!isLocalMode && !navigator.onLine) return toast.show("A Vilma precisa de internet para responder.", "error");
+    if (provider === undefined && !isLocalMode) return;
     setInput("");
     setMessages((m) => [...m, { role: "user", content: msg }]);
     setBusy(true);
-    if (isLocalMode) {
-      // modo local: assistente por regras, com dados do próprio aparelho
-      try {
-        const sb = getSupabase();
-        let conv = conversationId;
-        if (!conv) {
-          const { data } = await sb.from("conversations").insert({ title: msg.slice(0, 60) }).select("id").single();
-          conv = (data as { id: string } | null)?.id ?? null;
-          setConversationId(conv);
-        }
-        const r = await localAssistant(msg, { sb, today, tz, wakeTime: profile?.wake_time ?? null });
-        if (conv) await sb.from("messages").insert([{ conversation_id: conv, role: "user", content: msg }, { conversation_id: conv, role: "assistant", content: r.reply, actions: r.actions }]);
-        setMessages((m) => [...m, { role: "assistant", content: r.reply, actions: r.actions }]);
-        if (r.actions.some((a) => a.ok)) invalidate("tasks", "events", "transactions", "sleep_logs", "water_logs", "shopping_lists", "shopping_items", "notes");
-        invalidate("conversations");
-      } finally {
-        setBusy(false);
-      }
+    if (!useAI) {
+      await runBasic(msg);
       return;
     }
     try {
       const res = await fetch("/api/vilma", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ conversationId, message: msg }) });
       const j = await res.json();
       if (j.conversationId) setConversationId(j.conversationId);
+      if (!res.ok && (j.code === "quota" || j.code === "provider_error" || j.code === "not_configured")) {
+        // IA indisponível (ex.: limite gratuito do dia): responde com a Vilma básica
+        await runBasic(msg, j.conversationId ?? conversationId, j.code === "quota" ? "_A IA gratuita atingiu o limite por agora, então respondi no modo básico._" : "_A IA não respondeu agora, então respondi no modo básico._");
+        return;
+      }
       if (!res.ok) {
         setMessages((m) => [...m, { role: "assistant", content: j.error ?? "Algo deu errado.", error: true }]);
       } else {
@@ -114,6 +114,43 @@ function VilmaInner() {
     } finally {
       setBusy(false);
     }
+  }
+
+  /** Vilma básica: regras em português + dados reais da usuária (nada é enviado a provedores de IA). */
+  async function runBasic(msg: string, convId: string | null = conversationId, note?: string) {
+    {
+      try {
+        const sb = getSupabase();
+        let conv = convId;
+        if (!conv) {
+          const { data } = await sb.from("conversations").insert({ title: msg.slice(0, 60) }).select("id").single();
+          conv = (data as { id: string } | null)?.id ?? null;
+          setConversationId(conv);
+        }
+        const r = await localAssistant(msg, { sb, today, tz, wakeTime: profile?.wake_time ?? null });
+        if (note) r.reply = `${r.reply}\n\n${note}`;
+        if (conv) await sb.from("messages").insert([{ conversation_id: conv, role: "user", content: msg }, { conversation_id: conv, role: "assistant", content: r.reply, actions: r.actions }]);
+        setMessages((m) => [...m, { role: "assistant", content: r.reply, actions: r.actions }]);
+        if (r.actions.some((a) => a.ok)) invalidate("tasks", "events", "transactions", "sleep_logs", "water_logs", "shopping_lists", "shopping_items", "notes");
+        invalidate("conversations");
+      } catch {
+        setMessages((m) => [...m, { role: "assistant", content: "Não consegui registrar agora. Tente de novo.", error: true }]);
+      } finally {
+        setBusy(false);
+      }
+    }
+  }
+
+  function chooseBasic(on: boolean) {
+    setBasicChoice(on);
+    try { localStorage.setItem("vilma:basica", on ? "1" : "0"); } catch {}
+  }
+
+  async function grantConsent() {
+    if (!provider) return;
+    await updateProfile({ ai_consent_at: new Date().toISOString(), ai_consent_provider: provider });
+    await getSupabase().from("consents").insert({ kind: provider === "gemini" ? "ia_google" : "ia", granted: true });
+    chooseBasic(false);
   }
 
   async function resolve(id: string, decision: "confirmar" | "cancelar") {
@@ -141,16 +178,24 @@ function VilmaInner() {
     rec.start();
   }
 
-  if (profile && !consent && !isLocalMode) {
+  if (profile && provider && !consent && !basicChoice && !isLocalMode) {
+    const google = provider === "gemini";
     return (
       <>
         <PageHeader title="Vilma" icon={<LogoMark size={26} />} />
         <div className="card space-y-4 p-6 text-center">
           <LogoMark size={56} className="mx-auto" />
           <h2 className="text-lg font-bold">Ative a assistente Vilma</h2>
-          <p className="text-sm text-ink-soft">Para conversar comigo, preciso da sua autorização para enviar suas mensagens e o contexto mínimo necessário (como compromissos e valores consultados) ao provedor de IA (Anthropic). Seu diário e dados do ciclo nunca são enviados, e nada é usado para treinar modelos.</p>
-          <Button onClick={async () => { await updateProfile({ ai_consent_at: new Date().toISOString() }); await getSupabase().from("consents").insert({ kind: "ia", granted: true }); }}>Autorizar e conversar</Button>
-          <p className="text-xs text-muted">Você pode revogar quando quiser em Configurações › Privacidade.</p>
+          {google ? (
+            <p className="text-sm text-ink-soft">Para conversar comigo com IA, preciso da sua autorização para enviar suas mensagens e o contexto mínimo necessário (como tarefas, compromissos e valores consultados) ao <strong>Google (Gemini)</strong>. Estamos usando o <strong>plano gratuito</strong>: nele, o Google pode usar essas informações para melhorar os produtos dele, e pessoas podem revisá-las. Seu diário e dados do ciclo nunca são enviados.</p>
+          ) : (
+            <p className="text-sm text-ink-soft">Para conversar comigo com IA, preciso da sua autorização para enviar suas mensagens e o contexto mínimo necessário (como compromissos e valores consultados) ao provedor de IA (Anthropic). Seu diário e dados do ciclo nunca são enviados, e nada é usado para treinar modelos.</p>
+          )}
+          <div className="flex flex-col gap-2">
+            <Button onClick={grantConsent}>Autorizar e conversar</Button>
+            <Button variant="ghost" onClick={() => chooseBasic(true)}>Usar a Vilma básica (sem IA)</Button>
+          </div>
+          <p className="text-xs text-muted">A Vilma básica entende comandos simples e nada sai do seu banco. Você pode mudar quando quiser em Configurações › Privacidade.</p>
         </div>
       </>
     );
@@ -160,7 +205,7 @@ function VilmaInner() {
     <div className="flex min-h-[calc(100dvh-8rem)] flex-col lg:min-h-[calc(100dvh-2rem)]">
       <PageHeader
         title="Vilma"
-        subtitle="sua assistente pessoal"
+        subtitle={useAI ? `sua assistente pessoal · IA ${provider === "gemini" ? "Gemini" : "Claude"}` : "sua assistente pessoal · modo básico"}
         icon={<LogoMark size={26} />}
         actions={<>
           <Button size="icon" variant="ghost" aria-label="Histórico de conversas" onClick={() => setHistoryOpen(true)}><History className="size-5" /></Button>
@@ -172,7 +217,7 @@ function VilmaInner() {
           <div className="pt-4 text-center">
             <LogoMark size={64} className="mx-auto" />
             <p className="mt-3 text-lg font-bold">Oi{displayName ? `, ${displayName}` : ""}! 💜 Eu sou a Vilma.</p>
-            <p className="mx-auto mt-1 max-w-sm text-sm text-ink-soft">Me conta como é o seu dia. Pode escrever ou apertar o microfone e falar.{isLocalMode && " (Modo local: entendo comandos simples; a IA completa chega com a versão online.)"}</p>
+            <p className="mx-auto mt-1 max-w-sm text-sm text-ink-soft">Me conta como é o seu dia. Pode escrever ou apertar o microfone e falar.{!useAI && provider !== undefined && " (Modo básico: entendo comandos simples como registrar gastos, compromissos, tarefas, sono e água, e mostrar pendências e resumos.)"}</p>
             <div className="mt-5 flex flex-wrap justify-center gap-2">
               {SUGGESTIONS.map((s) => <button key={s} onClick={() => send(s)} className="rounded-pill border border-line bg-surface px-3.5 py-2 text-sm text-ink-soft hover:bg-primary-soft hover:text-primary-soft-ink">{s}</button>)}
             </div>
@@ -221,7 +266,11 @@ function VilmaInner() {
         {speechSupported && <Button type="button" size="icon" variant={listening ? "danger" : "soft"} onClick={toggleVoice} aria-label={listening ? "Parar de ouvir" : "Falar"} aria-pressed={listening}>{listening ? <MicOff className="size-5" /> : <Mic className="size-5" />}</Button>}
         <Button type="submit" size="icon" disabled={!input.trim() || busy} aria-label="Enviar"><Send className="size-5" /></Button>
       </form>
-      <p className="mt-2 text-center text-[0.7rem] text-muted">A Vilma pode errar. Ações de exclusão sempre pedem sua confirmação.</p>
+      <p className="mt-2 text-center text-[0.7rem] text-muted">
+        A Vilma pode errar. Ações de exclusão sempre pedem sua confirmação.
+        {!isLocalMode && provider && basicChoice && <> · <button type="button" className="font-semibold text-primary underline" onClick={() => chooseBasic(false)}>Ligar a IA ({provider === "gemini" ? "Gemini" : "Claude"})</button></>}
+        {useAI && <> · <button type="button" className="font-semibold text-primary underline" onClick={() => chooseBasic(true)}>Usar modo básico</button></>}
+      </p>
 
       <Sheet open={historyOpen} onClose={() => setHistoryOpen(false)} title="Conversas">
         {conversations.length === 0 ? <EmptyState icon="💬" title="Nenhuma conversa ainda" /> : (

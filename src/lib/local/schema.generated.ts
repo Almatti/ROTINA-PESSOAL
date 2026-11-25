@@ -173,6 +173,10 @@ export const LOCAL_SCHEMA = {
     "default": {
      "fn": "now"
     }
+   },
+   "ai_consent_provider": {
+    "type": "text",
+    "default": null
    }
   },
   "unique": [

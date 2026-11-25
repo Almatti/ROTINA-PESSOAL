@@ -72,7 +72,8 @@ Sem Supabase configurado, o app mostra a página **/configuracao** listando o qu
 | `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY` | sim | conexão do app (chave pública; acesso limitado por RLS) |
 | `NEXT_PUBLIC_SITE_URL` | sim em produção | redirecionamentos de login e OAuth |
 | `SUPABASE_SERVICE_ROLE_KEY` | recomendada | exclusão de conta, Google Agenda, cron de automações (somente servidor) |
-| `ANTHROPIC_API_KEY` (`ANTHROPIC_MODEL` opcional) | para a Vilma | assistente de IA (somente servidor) |
+| `ANTHROPIC_API_KEY` (`ANTHROPIC_MODEL` opcional) | não | Vilma com Claude (pago; tem prioridade) |
+| `GEMINI_API_KEY` (`GEMINI_MODEL` opcional) | não | Vilma com Gemini (plano gratuito do Google). Sem nenhuma chave, a Vilma funciona no modo básico, sem IA |
 | `NEXT_PUBLIC_GOOGLE_AUTH` | para login com Google | `1` mostra “Continuar com Google” (ative antes o provedor Google no Supabase) |
 | `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | para Google Agenda | OAuth (somente servidor) |
 | `INTEGRATIONS_ENCRYPTION_KEY` | para Google Agenda | criptografia AES-256-GCM dos tokens (`openssl rand -base64 32`) |
@@ -127,7 +128,7 @@ legacy/                protótipo original (HTML/JS) mantido como referência
 |---|---|
 | Supabase (banco, auth, storage) | implementado; requer projeto e migrations |
 | Login com Google | implementado no app; requer ativar o provedor Google no Supabase |
-| Vilma (Anthropic) | implementado; requer `ANTHROPIC_API_KEY`; não foi testado contra a API real neste ambiente |
+| Vilma | modo básico (sem IA) funciona sem configuração; Gemini gratuito com `GEMINI_API_KEY`; Claude com `ANTHROPIC_API_KEY`. Nenhum dos dois provedores foi testado contra a API real neste ambiente (testes com respostas simuladas do protocolo) |
 | Google Agenda | implementado (OAuth + sincronização bidirecional); requer credenciais Google Cloud; não testado contra o Google real |
 | Automações agendadas | implementado; requer `CRON_SECRET` e deploy na Vercel |
 | Notificações com o app fechado (Web Push) | implementado; requer chaves VAPID; para lembretes no minuto certo, agende o cron a cada 15 min (Vercel Pro ou agendador externo) |

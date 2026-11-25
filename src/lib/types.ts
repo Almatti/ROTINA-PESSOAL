@@ -30,6 +30,7 @@ export interface Profile {
   avatar_config: { emoji: string; color: string; frame: string };
   privacy_accepted_at: string | null;
   ai_consent_at: string | null;
+  ai_consent_provider: "anthropic" | "gemini" | null;
   cycle_consent_at: string | null;
 }
 

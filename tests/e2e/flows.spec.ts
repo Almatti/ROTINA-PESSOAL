@@ -106,17 +106,25 @@ test("hidratação: copos registram consumo", async ({ page }) => {
   expect(w.reduce((s: number, x: { amount_ml: number }) => s + x.amount_ml, 0)).toBe(250);
 });
 
-test("Vilma sem chave de API informa configuração pendente (sem simular resposta)", async ({ page }) => {
+test("Vilma sem chave de IA responde no modo básico com dados reais (sem simular IA)", async ({ page }) => {
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message + "\n" + (e.stack ?? "").slice(0, 600)));
   await login(page, email);
   await page.goto("/vilma");
   await expect(page.getByText(/Eu sou a Vilma/)).toBeVisible();
+  await expect(page.getByText(/modo básico/).first()).toBeVisible();
   await page.getByLabel("Mensagem para a Vilma").fill("Quais tarefas ainda estão pendentes?");
   await page.getByRole("button", { name: "Enviar" }).click();
-  await page.waitForTimeout(1500);
+  // a resposta precisa refletir o banco: nesta altura a única tarefa já foi concluída
+  const pend = await rest(page, "tasks?select=id&status=in.(pendente,em_andamento)");
+  await expect(page.getByText(pend.length ? /tarefa\(s\) pendente\(s\)/ : /não tem tarefas pendentes/)).toBeVisible();
+  await page.getByLabel("Mensagem para a Vilma").fill("bebi 500 ml de água");
+  await page.getByRole("button", { name: "Enviar" }).click();
+  await expect(page.getByText("Água: +500 ml")).toBeVisible();
+  await expect.poll(async () => (await rest(page, "water_logs?select=amount_ml")).reduce((s: number, x: { amount_ml: number }) => s + x.amount_ml, 0)).toBe(750);
+  // a conversa fica salva no banco
+  await expect.poll(async () => (await rest(page, "messages?select=id")).length).toBe(4);
   expect(errors, errors.join("\n")).toEqual([]);
-  await expect(page.getByText(/ANTHROPIC_API_KEY ausente/)).toBeVisible();
 });
 
 test("excluir tarefa exige confirmação", async ({ page }) => {

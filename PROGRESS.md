@@ -49,10 +49,16 @@ Versão estática sem servidor (`npm run build:local`), publicada pelo workflow 
 7. Migrar dados do modo local para a versão online (importar o JSON exportado).
 8. Ideias: importação de extrato OFX/CSV, widgets de tela inicial nativos, remédios/devocional do protótipo.
 
+## Atualização — Vilma gratuita
+
+- Modo básico (regras + dados reais, sem IA) também na versão online, usado sem chave, por escolha da usuária ou quando a IA falha/estoura o limite.
+- Provedor Gemini (plano gratuito) com as mesmas 25 ferramentas validadas; consentimento específico por provedor (`profiles.ai_consent_provider`, `consents.kind = 'ia_google'`).
+- Pendente: cadastrar `GEMINI_API_KEY` na Vercel; testar contra a API real do Google.
+
 ## Resultados de testes (última execução)
 
 - `tsc`: OK · `next build` (com lint): OK, 0 avisos
-- `npm test`: 57/57 ✅
+- `npm test`: 63/63 ✅ (inclui 6 testes do provedor Gemini)
 - E2E modo local: 2/2 ✅
 - `npm run test:db`: OK ✅
 - `npm run test:e2e`: 24/24 ✅ (mobile Pixel 7 + desktop 1366px)
