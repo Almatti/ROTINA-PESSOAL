@@ -64,6 +64,14 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       setDataUser(data.user?.id ?? null);
       if (data.user) {
         await loadProfile(data.user.id);
+        // automações: executa uma vez por dia por dispositivo ao abrir o app (além do cron diário)
+        try {
+          const key = `vilma:auto:${data.user.id}:${new Date().toISOString().slice(0, 10)}`;
+          if (navigator.onLine && !localStorage.getItem(key)) {
+            localStorage.setItem(key, "1");
+            void fetch("/api/automations/run", { method: "POST" }).catch(() => localStorage.removeItem(key));
+          }
+        } catch {}
         stopSync = startSync(data.user.id, (r) => {
           if (r.sent) toast.show(`${r.sent} alteração(ões) sincronizada(s).`, "success");
           r.failed.forEach((f) => toast.show(`Não foi possível sincronizar: ${f}`, "error"));
