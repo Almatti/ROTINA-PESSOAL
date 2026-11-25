@@ -6,6 +6,7 @@ import { DEFAULT_TZ, localDateISO, zonedParts } from "@/lib/domain/dates";
 import { setDataUser, startSync, mutate } from "@/lib/data/store";
 import type { Profile } from "@/lib/types";
 import { useToast } from "@/components/ui/toast";
+import { isLocalMode, withBase } from "@/lib/env";
 
 interface SessionValue {
   user: User | null;
@@ -69,7 +70,13 @@ export function SessionProvider({ children }: { children: ReactNode }) {
           const key = `vilma:auto:${data.user.id}:${new Date().toISOString().slice(0, 10)}`;
           if (navigator.onLine && !localStorage.getItem(key)) {
             localStorage.setItem(key, "1");
-            void fetch("/api/automations/run", { method: "POST" }).catch(() => localStorage.removeItem(key));
+            if (isLocalMode) {
+              // modo local: o motor de automações roda no próprio aparelho
+              void import("@/lib/automation/engine").then(async ({ runAutomationsForUser }) => {
+                const { data: p } = await sb.from("profiles").select("id,timezone,notification_prefs").eq("id", data.user!.id).single();
+                if (p) await runAutomationsForUser(sb, p);
+              }).catch(() => localStorage.removeItem(key));
+            } else void fetch("/api/automations/run", { method: "POST" }).catch(() => localStorage.removeItem(key));
           }
         } catch {}
         stopSync = startSync(data.user.id, (r) => {
@@ -131,7 +138,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       },
       signOut: async () => {
         await getSupabase().auth.signOut();
-        window.location.href = "/entrar";
+        window.location.href = withBase("/entrar");
       },
     };
   }, [user, profile, loading, tz, now, updateProfile, loadProfile]);

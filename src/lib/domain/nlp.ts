@@ -130,7 +130,17 @@ export function parseQuickCommand(input: string, today: ISODate): QuickParse {
   const s = strip(raw);
   const { date, match: dMatch } = parseRelativeDate(raw, today);
   const { time, match: tMatch } = parseTime(raw);
-  const { cents, match: aMatch } = parseAmount(raw);
+  let { cents, match: aMatch } = parseAmount(raw);
+  // valor sem "R$" após verbos de dinheiro: "gastei 45,90 no mercado", "recebi 3000"
+  if (cents === null && /\b(gastei|paguei|recebi|ganhei|custou|despesa|receita|entrada|gasto)\b/.test(s)) {
+    const re = /(?:^|[^\d/:])(\d{1,3}(?:\.\d{3})+(?:,\d{1,2})?|\d+(?:,\d{1,2})?(?:\s*mil)?)(?![\d/:h]|\s*(?:ml|l|litros?|horas?|h)\b)/g;
+    for (const m of raw.matchAll(re)) {
+      const before = raw.slice(0, m.index! + m[0].length - m[1].length).toLowerCase();
+      if (/\bdia\s*$/.test(before)) continue;
+      const v = parseBRL(m[1]);
+      if (v) { cents = v; aMatch = m[1]; break; }
+    }
+  }
   const duration = parseDurationHours(raw);
   const water = s.match(/(\d{2,4})\s*ml\b/) ?? (/(\d+(?:[.,]\d+)?)\s*(?:l|litros?)\b/.exec(s) as RegExpMatchArray | null);
 

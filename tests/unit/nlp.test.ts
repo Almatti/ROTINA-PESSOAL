@@ -35,4 +35,12 @@ describe("linguagem natural (pt-BR)", () => {
     expect(parseQuickCommand("Registre que dormi oito horas", today)).toMatchObject({ intent: "sono", durationMinutes: 480 });
     expect(parseQuickCommand("bebi 500ml de água", today)).toMatchObject({ intent: "agua", waterMl: 500 });
   });
+  it("valores sem R$ após verbos de dinheiro", () => {
+    const a = parseQuickCommand("gastei 45,90 no mercado", today);
+    expect(a).toMatchObject({ intent: "despesa", amountCents: 4590 });
+    expect(a.title.toLowerCase()).toContain("mercado");
+    expect(parseQuickCommand("recebi 3000 de salário", today)).toMatchObject({ intent: "receita", amountCents: 300000 });
+    expect(parseQuickCommand("paguei 1.250,00 de aluguel dia 5", today)).toMatchObject({ intent: "despesa", amountCents: 125000 });
+    expect(parseQuickCommand("lembre-me de pagar a internet dia 10", today).amountCents).toBeNull();
+  });
 });

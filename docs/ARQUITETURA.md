@@ -31,6 +31,10 @@ Middleware: renovação de sessão e proteção das rotas autenticadas.
 | Telas internas renderizadas só no cliente | dados vêm do cache/offline e do relógio local — evita divergência de hidratação |
 | IA com *tool use* manual (Messages API) e confirmação no servidor | a Vilma só altera dados por ferramentas validadas; exclusões/alterações em massa viram `pending_actions` |
 
+## Modo local (sem servidor)
+
+Com `NEXT_PUBLIC_LOCAL_MODE=1`, `getSupabase()` devolve `src/lib/local/client.ts`: um cliente compatível com a parte da API do supabase-js usada pelo app (consultas, filtros incluindo `or()`, ordenação, inserção/atualização/upsert/exclusão, contagem, `rpc`, auth, arquivos), persistindo no `localStorage`. O esquema (colunas, padrões, restrições únicas e cascatas) é **gerado das migrations** por `scripts/gen-local-schema.mjs`, assim o modo local segue o mesmo modelo de dados. O isolamento entre contas locais reproduz o RLS. O motor de automações é isomórfico e roda no navegador; a Vilma local (`src/lib/local/vilma-local.ts`) usa o interpretador de linguagem natural e consultas reais aos dados. `scripts/build-local.sh` retira temporariamente rotas que exigem servidor (`api`, `auth`, `configuracao`, middleware) e gera um export estático com `basePath` opcional.
+
 ## Design system
 
 - Tokens em `src/app/globals.css` (`:root` e `[data-theme="dark"]`), mapeados para utilitários Tailwind 4 via `@theme inline` (`bg-surface`, `text-ink`, `text-muted`, `bg-primary-soft`, `rounded-card`, `shadow-soft`…).

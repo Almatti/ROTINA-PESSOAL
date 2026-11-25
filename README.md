@@ -6,6 +6,17 @@ Central inteligente de organização pessoal em português: **agenda, tarefas, h
 
 <p align="center"><img src="docs/capturas/inicio.png" width="230" alt="Início"> <img src="docs/capturas/meu-plano.png" width="230" alt="Meu plano"> <img src="docs/capturas/financas.png" width="230" alt="Finanças"> <img src="docs/capturas/sono-escuro.png" width="230" alt="Sono (modo escuro)"></p>
 
+## Usar agora (modo local, sem servidor)
+
+Existe uma versão que funciona **sem Supabase e sem servidor**: os dados ficam guardados no próprio aparelho/navegador.
+
+- **Endereço (após ativar o GitHub Pages uma vez):** `https://almatti.github.io/ROTINA-PESSOAL/`
+- **Ativação (uma única vez):** no GitHub, *Settings › Pages › Build and deployment › Source: Deploy from a branch › Branch: `gh-pages` / `(root)` › Save*. A publicação é automática a cada atualização (workflow `.github/workflows/pages-local.yml`).
+- **Gerar localmente:** `npm run build:local` (saída em `out/`, publique em qualquer hospedagem estática).
+
+Funciona no modo local: todas as telas e módulos, contas locais, gráficos, automações (rodam ao abrir o app), lembretes com o app aberto, exportação/exclusão de dados e uma **Vilma local** que entende comandos simples (“gastei 45,90 no mercado”, “academia amanhã às 7h”, “quais tarefas estão pendentes?”, “quanto gastei este mês?”, “resumo da semana”).
+Fica para a versão online: sincronização entre aparelhos, recuperação de senha por e-mail, login com Google, IA completa (Anthropic), Google Agenda e push com o app fechado. Faça backups em *Configurações › Privacidade › Exportar*.
+
 ## Sumário
 
 - [Funcionalidades](#funcionalidades)
@@ -79,6 +90,8 @@ Nenhuma chave privada é exposta ao navegador.
 | `npm run test:db` | migrations + testes de RLS/integridade num PostgreSQL local |
 | `npm run test:e2e` | E2E (Playwright) com PostgreSQL real e shim do Supabase |
 | `npm run icons` | regenera os ícones do PWA |
+| `npm run build:local` | gera a versão modo local (site estático em `out/`) |
+| `npx playwright test -c playwright.local.config.ts` | E2E da versão local (após `NEXT_PUBLIC_BASE_PATH=/ROTINA-PESSOAL npm run build:local`) |
 
 ## Estrutura do projeto
 

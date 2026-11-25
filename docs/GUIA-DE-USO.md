@@ -2,6 +2,10 @@
 
 Este guia é para você que vai **usar** o app — não precisa saber programar.
 
+## 0. Usar agora, sem servidor (modo local)
+
+Abra **https://almatti.github.io/ROTINA-PESSOAL/** no celular, crie sua conta e use normalmente. Nesse modo, tudo fica guardado **só neste aparelho e navegador**: não limpe os dados do navegador e faça backups em Configurações › Privacidade › **Exportar**. A Vilma local entende comandos simples; a IA completa, a sincronização entre aparelhos e o Google Agenda chegam com a versão online.
+
 ## 1. Primeiros passos
 
 1. Abra o endereço do app no navegador do celular ou computador.

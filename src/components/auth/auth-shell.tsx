@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { LogoMark } from "@/components/brand/logo";
+import { LocalModeNotice } from "@/components/local/local-bits";
 
 export function AuthShell({ title, subtitle, children, footer }: { title: string; subtitle?: string; children: ReactNode; footer?: ReactNode }) {
   return (
@@ -11,6 +12,7 @@ export function AuthShell({ title, subtitle, children, footer }: { title: string
       </Link>
       <h1 className="font-display text-3xl font-semibold leading-tight">{title}</h1>
       {subtitle && <p className="mt-2 text-ink-soft">{subtitle}</p>}
+      <LocalModeNotice className="mt-6" />
       <div className="mt-8">{children}</div>
       {footer && <div className="mt-8 text-center text-sm text-ink-soft">{footer}</div>}
     </main>

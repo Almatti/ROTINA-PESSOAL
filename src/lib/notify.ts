@@ -1,10 +1,11 @@
 "use client";
+import { withBase } from "@/lib/env";
 /** Notificação local (via service worker quando disponível). Só dispara com permissão concedida. */
 export async function notify(title: string, body: string, url = "/inicio", tag?: string) {
   if (typeof window === "undefined" || !("Notification" in window) || Notification.permission !== "granted") return false;
   try {
     const reg = await navigator.serviceWorker?.getRegistration();
-    const opts: NotificationOptions = { body, icon: "/icons/icon-192.png", badge: "/icons/badge-96.png", data: { url }, tag };
+    const opts: NotificationOptions = { body, icon: "/icons/icon-192.png", badge: "/icons/badge-96.png", data: { url: withBase(url) }, tag };
     if (reg) await reg.showNotification(title, opts);
     else new Notification(title, opts);
     return true;

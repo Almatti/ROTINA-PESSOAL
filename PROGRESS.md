@@ -34,6 +34,10 @@ Arquivo de acompanhamento para retomar o projeto a qualquer momento.
 - Texto secundário usa Dusky Lilac escurecido (#6E5975) e cores semânticas ajustadas para contraste AA.
 - Protótipo original preservado em `legacy/` (os módulos “Remédios” e “Devocional” dele podem ser adicionados como hábitos/anotações).
 
+## Modo local (uso imediato)
+
+Versão estática sem servidor (`npm run build:local`), publicada pelo workflow `pages-local.yml` na branch `gh-pages`. Endereço após ativar o Pages: https://almatti.github.io/ROTINA-PESSOAL/
+
 ## Pendências / próximos passos
 
 1. Web Push ✅ implementado — falta configurar chaves VAPID e um agendamento a cada 15 min para lembretes no minuto exato.
@@ -42,12 +46,14 @@ Arquivo de acompanhamento para retomar o projeto a qualquer momento.
 4. Preencher controlador/DPO na Política de Privacidade e revisar Termos juridicamente.
 5. Traduzir templates de e-mail do Supabase.
 6. Cobertura E2E para Storage (foto, anexos, vision board) e Realtime em ambiente Supabase real.
-7. Ideias: importação de extrato OFX/CSV, widgets de tela inicial nativos, remédios/devocional do protótipo.
+7. Migrar dados do modo local para a versão online (importar o JSON exportado).
+8. Ideias: importação de extrato OFX/CSV, widgets de tela inicial nativos, remédios/devocional do protótipo.
 
 ## Resultados de testes (última execução)
 
 - `tsc`: OK · `next build` (com lint): OK, 0 avisos
-- `npm test`: 56/56 ✅
+- `npm test`: 57/57 ✅
+- E2E modo local: 2/2 ✅
 - `npm run test:db`: OK ✅
 - `npm run test:e2e`: 24/24 ✅ (mobile Pixel 7 + desktop 1366px)
 

@@ -13,7 +13,8 @@
     "test:watch": "vitest",
     "test:db": "bash scripts/test-db.sh",
     "test:e2e": "bash scripts/e2e.sh",
-    "icons": "node scripts/generate-icons.mjs"
+    "icons": "node scripts/generate-icons.mjs",
+    "build:local": "bash scripts/build-local.sh"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.14.0",

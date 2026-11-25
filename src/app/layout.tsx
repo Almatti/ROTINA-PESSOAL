@@ -3,6 +3,7 @@ import { Plus_Jakarta_Sans, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import { ToastProvider } from "@/components/ui/toast";
 import { PwaRegister } from "@/components/layout/pwa-register";
+import { withBase } from "@/lib/env";
 
 const jakarta = Plus_Jakarta_Sans({ subsets: ["latin"], variable: "--font-jakarta", display: "swap" });
 const playfair = Playfair_Display({ subsets: ["latin"], variable: "--font-playfair", display: "swap", weight: ["500", "600", "700"] });
@@ -12,7 +13,8 @@ export const metadata: Metadata = {
   description: "Agenda, tarefas, hábitos, finanças, bem-estar e uma assistente pessoal — tudo em um só lugar.",
   applicationName: "Vilma",
   appleWebApp: { capable: true, title: "Vilma", statusBarStyle: "default" },
-  icons: { icon: "/icons/icon.svg", apple: "/icons/apple-touch-icon.png" },
+  icons: { icon: withBase("/icons/icon.svg"), apple: withBase("/icons/apple-touch-icon.png") },
+  manifest: withBase("/manifest.webmanifest"),
   formatDetection: { telephone: false },
 };
 

@@ -1,4 +1,3 @@
-import "server-only";
 /**
  * Motor de automações. Funciona com o cliente da usuária (RLS) ou com
  * service_role (cron) — por isso TODA consulta filtra por user_id e todo
@@ -15,13 +14,14 @@ import { effectiveStatus, suggestReschedule } from "@/lib/domain/tasks";
 import { isScheduledOn, isCompleted } from "@/lib/domain/habits";
 import { formatCents, toCents } from "@/lib/domain/money";
 import { generateRecurring } from "./recurring";
-import { sendPushToUser } from "@/lib/push/send";
 import { expandEvents } from "@/lib/calendar";
 import type { CalendarEvent } from "@/lib/types";
 
 interface Profile { id: string; timezone: string | null; notification_prefs: Record<string, boolean> | null }
 
-export async function runAutomationsForUser(sb: SupabaseClient, profile: Profile, now = new Date()) {
+export type OnNotify = (n: { title: string; body: string; url: string; tag: string }) => Promise<unknown>;
+
+export async function runAutomationsForUser(sb: SupabaseClient, profile: Profile, now = new Date(), onNotify?: OnNotify) {
   const uid = profile.id;
   const tz = profile.timezone || "America/Sao_Paulo";
   const today = localDateISO(now, tz);
@@ -37,7 +37,7 @@ export async function runAutomationsForUser(sb: SupabaseClient, profile: Profile
     if (data?.length) {
       created++;
       // Web Push: entrega no dispositivo mesmo com o app fechado (se a usuária ativou)
-      await sendPushToUser(sb, uid, { title, body, url: link, tag: dedupe }).catch(() => undefined);
+      if (onNotify) await onNotify({ title, body, url: link, tag: dedupe }).catch(() => undefined);
     }
   };
 

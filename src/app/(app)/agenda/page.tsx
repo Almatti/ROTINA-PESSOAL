@@ -17,6 +17,7 @@ import { addDays, addMonths, startOfWeek, monthStart, monthEnd, zonedToUtc, loca
 import { findConflicts } from "@/lib/domain/conflicts";
 import { describeRecurrence } from "@/lib/domain/recurrence";
 import type { CalendarEvent } from "@/lib/types";
+import { isLocalMode } from "@/lib/env";
 
 type View = "dia" | "semana" | "mes" | "ano";
 const HOURS = Array.from({ length: 18 }, (_, i) => i + 6); // 06h–23h
@@ -240,14 +241,14 @@ function AgendaInner() {
         </section>
       )}
 
-      <section className="card mt-4 flex items-center gap-3 p-4">
+      {!isLocalMode && <section className="card mt-4 flex items-center gap-3 p-4">
         <span className="grid size-10 place-items-center rounded-xl bg-info-soft text-sm font-bold text-info">31</span>
         <div className="min-w-0 flex-1">
           <p className="font-semibold">Google Agenda</p>
           <p className="text-xs text-muted">{google?.status === "ativa" ? `Conectado${google.last_synced_at ? ` · última sincronização ${new Date(google.last_synced_at).toLocaleString("pt-BR", { timeZone: tz })}` : ""}` : google?.status === "erro" ? "Erro na sincronização — reconecte" : "Sincronize seus compromissos nos dois sentidos."}</p>
         </div>
         {google?.status === "ativa" ? <Button size="sm" variant="soft" loading={syncing} onClick={syncGoogle} icon={<RefreshCw className="size-4" />}>Sincronizar</Button> : <Link href="/configuracoes#integracoes" className="text-sm font-semibold text-primary">Conectar</Link>}
-      </section>
+      </section>}
 
       <Sheet open={!!creating} onClose={() => setCreating(null)} title="Novo compromisso">{creating && <EventForm onDone={() => setCreating(null)} defaults={{ date: creating.date, time: creating.time }} />}</Sheet>
       <Sheet open={!!editing} onClose={() => setEditing(null)} title="Editar compromisso">{editing && <EventForm event={editing} onDone={() => setEditing(null)} />}</Sheet>

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { CalendarDays, CheckSquare, Wallet, Moon, Heart, Sparkles, Droplets, Dumbbell, BookOpen, Home, NotebookPen, Target } from "lucide-react";
 import { LogoMark } from "@/components/brand/logo";
+import { LocalSessionRedirect, LocalModeNotice } from "@/components/local/local-bits";
 
 const modules = [
   { icon: CalendarDays, label: "Agenda", text: "Dia, semana, mês e ano — com Google Agenda." },
@@ -20,6 +21,7 @@ const modules = [
 export default function Welcome() {
   return (
     <main id="conteudo" className="mx-auto w-full max-w-5xl px-5 pb-16 pt-8">
+      <LocalSessionRedirect />
       <header className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <LogoMark size={44} />
@@ -41,6 +43,7 @@ export default function Welcome() {
             <Link href="/cadastro" className="inline-flex h-12 items-center rounded-pill bg-primary px-6 font-semibold text-primary-ink shadow-soft-lg">Começar agora</Link>
             <Link href="/entrar" className="inline-flex h-12 items-center rounded-pill border border-line bg-surface px-6 font-semibold">Já tenho conta</Link>
           </div>
+          <LocalModeNotice className="mt-6 max-w-lg" />
           <p className="mt-4 text-xs text-muted">Seus dados são seus: exportação e exclusão a qualquer momento, conforme a LGPD.</p>
         </div>
         <div className="relative" aria-hidden>
