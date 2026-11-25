@@ -14,6 +14,7 @@ import { download } from "@/lib/export";
 import { useToast } from "@/components/ui/toast";
 import type { Category } from "@/lib/types";
 import { AUTOMATIONS } from "@/lib/automation/catalog";
+import { pushSupported, currentSubscription, enablePush, disablePush, vapidKey } from "@/lib/push/client";
 
 const TIMEZONES = ["America/Sao_Paulo", "America/Manaus", "America/Belem", "America/Fortaleza", "America/Recife", "America/Cuiaba", "America/Porto_Velho", "America/Rio_Branco", "America/Noronha", "Europe/Lisbon", "America/New_York", "Europe/London"];
 
@@ -75,7 +76,7 @@ export default function SettingsPage() {
         {[["compromissos", "Compromissos"], ["tarefas", "Tarefas com lembrete"], ["vencimentos", "Contas a vencer"], ["habitos", "Hábitos"], ["agua", "Água"], ["resumo_manha", "Resumo da manhã"], ["revisao_noite", "Revisão da noite"]].map(([k, l]) => (
           <Toggle key={k} checked={k === "agua" || k === "revisao_noite" ? !!prefs[k] : prefs[k] !== false} onChange={(b) => updateProfile({ notification_prefs: { ...prefs, [k]: b } })} label={l} />
         ))}
-        <p className="py-2 text-xs text-muted">Lembretes com o app fechado dependem de Web Push (integração pendente — veja o README). Com o app aberto ou instalado recentemente, os lembretes funcionam normalmente.</p>
+        <PushToggle />
       </Card>
 
       <SectionTitle><LayoutGrid className="mr-2 inline size-4 text-primary" aria-hidden />Módulos</SectionTitle>
@@ -201,5 +202,42 @@ function CategoriesEditor() {
       </form>
       <Badge tone="neutral">Excluir uma categoria não apaga registros — eles ficam “sem categoria”.</Badge>
     </Card>
+  );
+}
+
+function PushToggle() {
+  const toast = useToast();
+  const [on, setOn] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const supported = typeof window !== "undefined" && pushSupported();
+  useEffect(() => {
+    void currentSubscription().then((s) => setOn(!!s));
+  }, []);
+  if (!vapidKey) return <p className="py-2 text-xs text-muted">Notificações com o app fechado: aguardando configuração das chaves VAPID no servidor. Com o app aberto, os lembretes funcionam normalmente.</p>;
+  return (
+    <div className="py-1">
+      <Toggle
+        checked={on}
+        disabled={busy || !supported}
+        onChange={async (b) => {
+          setBusy(true);
+          try {
+            if (b) {
+              const r = await enablePush();
+              if (!r.ok) toast.show(r.error ?? "Não foi possível ativar.", "error");
+              setOn(r.ok);
+            } else {
+              await disablePush();
+              setOn(false);
+            }
+          } finally {
+            setBusy(false);
+          }
+        }}
+        label="Receber com o app fechado (push)"
+        description={supported ? "Lembretes, vencimentos e resumos chegam mesmo com o app fechado neste dispositivo." : "Não suportado neste navegador. No iPhone, instale o app na Tela de Início (iOS 16.4+)."}
+      />
+      {on && <Button size="sm" variant="ghost" onClick={async () => { const r = await fetch("/api/push/test", { method: "POST" }); const j = await r.json(); toast.show(r.ok ? (j.sent ? "Notificação de teste enviada." : "Nenhum dispositivo inscrito.") : j.error, r.ok ? "success" : "error"); }}>Enviar notificação de teste</Button>}
+    </div>
   );
 }

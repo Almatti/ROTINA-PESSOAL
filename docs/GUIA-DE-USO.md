@@ -82,5 +82,5 @@ Em **Configurações › Privacidade** você pode: revogar a autorização da IA
 ## 9. Dúvidas comuns
 
 - *A Vilma diz que não está configurada.* — A pessoa responsável pelo app precisa cadastrar a chave da IA no servidor.
-- *Não recebo notificações com o app fechado.* — Por enquanto os lembretes funcionam com o app aberto ou usado recentemente. Ative as notificações em Configurações.
+- *Não recebo notificações com o app fechado.* — Ative em Configurações › Notificações › **Receber com o app fechado** e toque em “Enviar notificação de teste”. No iPhone, primeiro instale o app na Tela de Início.
 - *Meu saldo está diferente do banco.* — Confira o saldo inicial da conta (Finanças › Contas › editar) e se todos os gastos foram registrados.

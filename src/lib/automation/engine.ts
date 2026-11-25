@@ -15,6 +15,7 @@ import { effectiveStatus, suggestReschedule } from "@/lib/domain/tasks";
 import { isScheduledOn, isCompleted } from "@/lib/domain/habits";
 import { formatCents, toCents } from "@/lib/domain/money";
 import { generateRecurring } from "./recurring";
+import { sendPushToUser } from "@/lib/push/send";
 import { expandEvents } from "@/lib/calendar";
 import type { CalendarEvent } from "@/lib/types";
 
@@ -33,7 +34,11 @@ export async function runAutomationsForUser(sb: SupabaseClient, profile: Profile
 
   const notify = async (type: string, title: string, body: string, link: string, dedupe: string) => {
     const { data } = await sb.from("notifications").upsert({ user_id: uid, type, title, body, link, dedupe_key: dedupe }, { onConflict: "user_id,dedupe_key", ignoreDuplicates: true }).select("id");
-    if (data?.length) created++;
+    if (data?.length) {
+      created++;
+      // Web Push: entrega no dispositivo mesmo com o app fechado (se a usuária ativou)
+      await sendPushToUser(sb, uid, { title, body, url: link, tag: dedupe }).catch(() => undefined);
+    }
   };
 
   const [tasksRes, txRes] = await Promise.all([
@@ -41,7 +46,7 @@ export async function runAutomationsForUser(sb: SupabaseClient, profile: Profile
     sb.from("transactions").select("*").eq("user_id", uid).limit(10000),
   ]);
   const tasks = (tasksRes.data ?? []) as { id: string; title: string; status: "pendente" | "em_andamento" | "concluida" | "cancelada"; due_date: string | null; due_time: string | null; deadline: string | null; priority: "baixa" | "media" | "alta" | "urgente"; recurrence: RecurrenceRule | null; recurrence_parent_id: string | null; [k: string]: unknown }[];
-  const txs = (txRes.data ?? []) as Tx[];
+  let txs = (txRes.data ?? []) as Tx[];
 
   // 1. Tarefas recorrentes: garante a próxima ocorrência de séries concluídas
   if (on("tarefas_recorrentes")) {
@@ -77,6 +82,7 @@ export async function runAutomationsForUser(sb: SupabaseClient, profile: Profile
     const n = await generateRecurring(sb, (defs ?? []) as RecurringDef[], monthStart(today), addDays(monthEnd(today), 7), cards ?? [], uid);
     log.contas_fixas = n;
     created += n;
+    if (n) txs = ((await sb.from("transactions").select("*").eq("user_id", uid).limit(10000)).data ?? []) as Tx[];
   }
 
   // 3/4. Atrasadas e sugestão de reagendamento
@@ -94,6 +100,23 @@ export async function runAutomationsForUser(sb: SupabaseClient, profile: Profile
     const { data: evs } = await sb.from("events").select("*").eq("user_id", uid).is("deleted_at", null).or(`and(starts_at.lte.${new Date(now.getTime() + 86400_000).toISOString()},ends_at.gte.${now.toISOString()}),recurrence.not.is.null`).limit(500);
     const occ = expandEvents((evs ?? []) as CalendarEvent[], today, addDays(today, 1), tz).filter((o) => new Date(o.occStart) > now && new Date(o.occStart).getTime() < now.getTime() + 86400_000);
     for (const o of occ.slice(0, 10)) await notify("compromisso", `Em breve: ${o.title}`, `${formatDateBR(localDateISO(new Date(o.occStart), tz))} ${o.all_day ? "(dia inteiro)" : `às ${localTimeHHMM(new Date(o.occStart), tz)}`}`, `/agenda?dia=${localDateISO(new Date(o.occStart), tz)}`, `evento:${o.id}:${o.occStart}`);
+  }
+
+  // 5b. Lembretes no horário exato (compromissos e tarefas com "X min antes").
+  // Janela de 20 min para tolerar atrasos do agendador; deduplicado por ocorrência.
+  const windowStart = now.getTime() - 20 * 60_000;
+  if (on("compromissos_proximos") && prefs.compromissos !== false) {
+    const { data: evs } = await sb.from("events").select("*").eq("user_id", uid).is("deleted_at", null).not("reminder_minutes", "is", null).or(`and(starts_at.lte.${new Date(now.getTime() + 8 * 86400_000).toISOString()},ends_at.gte.${now.toISOString()}),recurrence.not.is.null`).limit(500);
+    for (const o of expandEvents((evs ?? []) as CalendarEvent[], today, addDays(today, 7), tz)) {
+      const at = new Date(o.occStart).getTime() - (o.reminder_minutes ?? 0) * 60_000;
+      if (at <= now.getTime() && at >= windowStart) await notify("compromisso", `Lembrete: ${o.title}`, o.all_day ? "Hoje (dia inteiro)" : `Começa às ${localTimeHHMM(new Date(o.occStart), tz)}`, `/agenda?dia=${localDateISO(new Date(o.occStart), tz)}`, `lembrete-ev:${o.id}:${o.occStart}`);
+    }
+  }
+  if (prefs.tarefas !== false) {
+    for (const t of tasks.filter((x) => x.due_date && x.due_time && typeof x.reminder_minutes === "number" && (x.status === "pendente" || x.status === "em_andamento"))) {
+      const at = zonedToUtc(t.due_date!, t.due_time!.slice(0, 5), tz).getTime() - (t.reminder_minutes as number) * 60_000;
+      if (at <= now.getTime() && at >= windowStart) await notify("tarefa", `Lembrete: ${t.title}`, `Às ${t.due_time!.slice(0, 5)}`, "/meu-plano", `lembrete-tk:${t.id}:${t.due_date}`);
+    }
   }
 
   // 6. Vencimentos (contas a pagar e faturas em até 3 dias)

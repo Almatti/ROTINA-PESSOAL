@@ -56,6 +56,7 @@ Migrations em `supabase/migrations`. Todas as tabelas pessoais têm `user_id uui
 | Gamificação | `achievements` (catálogo, leitura), `user_achievements`, `point_events` (escrita só via `award_points()`) |
 | Integrações | `integrations` (tokens criptografados; colunas de token **não** legíveis pelo papel `authenticated`) |
 | Segurança | `rate_limits` + função `consume_rate_limit()` |
+| Push | `push_subscriptions` (endpoint https único, chaves do dispositivo) |
 
 Gatilho `on_auth_user_created` cria perfil, automações e categorias padrão. Storage: bucket privado `user-files` com políticas por pasta `{user_id}/…`.
 
@@ -100,6 +101,10 @@ Gatilho `on_auth_user_created` cria perfil, automações e categorias padrão. S
 - Rate limit no banco para IA, exportação, sincronização e automações.
 - Redirecionamentos pós-login aceitam apenas caminhos internos.
 - Cron protegido por `CRON_SECRET` com comparação em tempo constante.
+
+## Web Push
+
+`push_subscriptions` (RLS) guarda os dispositivos inscritos. `src/lib/push/client.ts` faz a inscrição (VAPID) e `/api/push/subscribe` registra; `src/lib/push/send.ts` envia com `web-push`, remove inscrições expiradas (404/410) e só aceita links internos no payload. O motor de automações envia push sempre que cria uma notificação nova (deduplicada), incluindo lembretes no horário exato de compromissos e tarefas (janela de 20 min, idempotente). O service worker trata o evento `push` e abre o link ao tocar.
 
 ## PWA
 
