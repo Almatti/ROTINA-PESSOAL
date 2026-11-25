@@ -169,7 +169,7 @@ create table public.tasks (
 );
 create index on public.tasks (user_id, status, due_date);
 create index on public.tasks (user_id, project_id);
-create unique index tasks_recurrence_unique on public.tasks (recurrence_parent_id, due_date) where recurrence_parent_id is not null;
+create unique index tasks_recurrence_unique on public.tasks (recurrence_parent_id, due_date);
 create trigger trg_tasks_updated before update on public.tasks for each row execute function public.set_updated_at();
 
 create table public.subtasks (
@@ -345,7 +345,8 @@ create table public.transactions (
 create index on public.transactions (user_id, occurred_on desc);
 create index on public.transactions (user_id, card_id, invoice_month);
 create index on public.transactions (installment_group);
-create unique index transactions_recurring_unique on public.transactions (recurring_id, occurred_on) where recurring_id is not null;
+-- índice completo (NULLs são distintos) para permitir ON CONFLICT via API sem predicado
+create unique index transactions_recurring_unique on public.transactions (recurring_id, occurred_on);
 create trigger trg_transactions_updated before update on public.transactions for each row execute function public.set_updated_at();
 
 create table public.invoices (
