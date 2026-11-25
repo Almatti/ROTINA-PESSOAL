@@ -4,6 +4,8 @@ Central inteligente de organização pessoal em português: **agenda, tarefas, h
 
 > Identidade visual em roxo/lilás/lavanda (paleta oficial do projeto), mobile-first, modo claro e escuro.
 
+<p align="center"><img src="docs/capturas/inicio.png" width="230" alt="Início"> <img src="docs/capturas/meu-plano.png" width="230" alt="Meu plano"> <img src="docs/capturas/financas.png" width="230" alt="Finanças"> <img src="docs/capturas/sono-escuro.png" width="230" alt="Sono (modo escuro)"></p>
+
 ## Sumário
 
 - [Funcionalidades](#funcionalidades)
