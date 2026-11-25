@@ -73,6 +73,7 @@ Sem Supabase configurado, o app mostra a página **/configuracao** listando o qu
 | `NEXT_PUBLIC_SITE_URL` | sim em produção | redirecionamentos de login e OAuth |
 | `SUPABASE_SERVICE_ROLE_KEY` | recomendada | exclusão de conta, Google Agenda, cron de automações (somente servidor) |
 | `ANTHROPIC_API_KEY` (`ANTHROPIC_MODEL` opcional) | para a Vilma | assistente de IA (somente servidor) |
+| `NEXT_PUBLIC_GOOGLE_AUTH` | para login com Google | `1` mostra “Continuar com Google” (ative antes o provedor Google no Supabase) |
 | `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | para Google Agenda | OAuth (somente servidor) |
 | `INTEGRATIONS_ENCRYPTION_KEY` | para Google Agenda | criptografia AES-256-GCM dos tokens (`openssl rand -base64 32`) |
 | `CRON_SECRET` | para automações agendadas | autenticação do Vercel Cron |

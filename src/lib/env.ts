@@ -10,4 +10,7 @@ export const publicEnv = {
   siteUrl: process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
 };
 
+/** Login com Google: só aparece depois que o provedor for ativado no Supabase. */
+export const isGoogleAuthEnabled = !isLocalMode && process.env.NEXT_PUBLIC_GOOGLE_AUTH === "1";
+
 export const isSupabaseConfigured = isLocalMode || Boolean(publicEnv.supabaseUrl && publicEnv.supabaseAnonKey);

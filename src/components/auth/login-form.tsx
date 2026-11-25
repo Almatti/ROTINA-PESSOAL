@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { isLocalMode } from "@/lib/env";
+import { isGoogleAuthEnabled } from "@/lib/env";
 import { AuthShell } from "./auth-shell";
 import { GoogleButton } from "./google-button";
 import { Button, Field, Input, ErrorNote } from "@/components/ui/primitives";
@@ -38,7 +38,7 @@ export function LoginForm() {
   return (
     <AuthShell title="Que bom te ver de novo" subtitle="Entre para continuar organizando sua vida." footer={<>Ainda não tem conta? <Link className="font-semibold text-primary" href="/cadastro">Criar conta</Link></>}>
       <GoogleButton next={next} />
-      {!isLocalMode && <div className="my-6 flex items-center gap-3 text-xs text-muted"><span className="h-px flex-1 bg-line" />ou com e-mail<span className="h-px flex-1 bg-line" /></div>}
+      {isGoogleAuthEnabled && <div className="my-6 flex items-center gap-3 text-xs text-muted"><span className="h-px flex-1 bg-line" />ou com e-mail<span className="h-px flex-1 bg-line" /></div>}
       <form onSubmit={onSubmit} noValidate className="space-y-4">
         {formError && <ErrorNote message={formError} />}
         <Field label="E-mail" error={errors.email}>{(id, d) => <Input id={id} name="email" type="email" autoComplete="email" inputMode="email" aria-describedby={d} invalid={!!errors.email} />}</Field>

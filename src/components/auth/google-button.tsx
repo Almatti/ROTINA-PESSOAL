@@ -3,12 +3,12 @@ import { useState } from "react";
 import { Button } from "@/components/ui/primitives";
 import { getSupabase } from "@/lib/supabase/client";
 import { useToast } from "@/components/ui/toast";
-import { isLocalMode } from "@/lib/env";
+import { isGoogleAuthEnabled } from "@/lib/env";
 
 export function GoogleButton({ next = "/inicio" }: { next?: string }) {
   const [loading, setLoading] = useState(false);
   const toast = useToast();
-  if (isLocalMode) return null;
+  if (!isGoogleAuthEnabled) return null;
   return (
     <Button
       variant="outline"
