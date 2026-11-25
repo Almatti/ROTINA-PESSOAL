@@ -14,6 +14,9 @@ import { download } from "@/lib/export";
 import { useToast } from "@/components/ui/toast";
 import type { Category } from "@/lib/types";
 import { AUTOMATIONS } from "@/lib/automation/catalog";
+import { isLocalMode, withBase } from "@/lib/env";
+import { exportLocalData, deleteLocalAccount } from "@/lib/local/client";
+import { pushSupported, currentSubscription, enablePush, disablePush, vapidKey } from "@/lib/push/client";
 
 const TIMEZONES = ["America/Sao_Paulo", "America/Manaus", "America/Belem", "America/Fortaleza", "America/Recife", "America/Cuiaba", "America/Porto_Velho", "America/Rio_Branco", "America/Noronha", "Europe/Lisbon", "America/New_York", "Europe/London"];
 
@@ -44,9 +47,15 @@ export default function SettingsPage() {
   async function runAutomations() {
     setBusy("auto");
     try {
-      const res = await fetch("/api/automations/run", { method: "POST" });
-      const j = await res.json();
-      if (!res.ok) throw new Error(j.error);
+      let j: { created: number; error?: string };
+      if (isLocalMode) {
+        const { runAutomationsForUser } = await import("@/lib/automation/engine");
+        j = await runAutomationsForUser(getSupabase(), { id: profile!.id, timezone: profile!.timezone, notification_prefs: profile!.notification_prefs });
+      } else {
+        const res = await fetch("/api/automations/run", { method: "POST" });
+        j = await res.json();
+        if (!res.ok) throw new Error(j.error);
+      }
       toast.show(`Automações executadas: ${j.created} novidade(s).`, "success");
       invalidate("notifications", "tasks", "transactions", "automations");
     } catch (e) {
@@ -75,7 +84,7 @@ export default function SettingsPage() {
         {[["compromissos", "Compromissos"], ["tarefas", "Tarefas com lembrete"], ["vencimentos", "Contas a vencer"], ["habitos", "Hábitos"], ["agua", "Água"], ["resumo_manha", "Resumo da manhã"], ["revisao_noite", "Revisão da noite"]].map(([k, l]) => (
           <Toggle key={k} checked={k === "agua" || k === "revisao_noite" ? !!prefs[k] : prefs[k] !== false} onChange={(b) => updateProfile({ notification_prefs: { ...prefs, [k]: b } })} label={l} />
         ))}
-        <p className="py-2 text-xs text-muted">Lembretes com o app fechado dependem de Web Push (integração pendente — veja o README). Com o app aberto ou instalado recentemente, os lembretes funcionam normalmente.</p>
+        <PushToggle />
       </Card>
 
       <SectionTitle><LayoutGrid className="mr-2 inline size-4 text-primary" aria-hidden />Módulos</SectionTitle>
@@ -121,7 +130,7 @@ export default function SettingsPage() {
           <p className="font-semibold">Google Agenda</p>
           <p className="text-xs text-muted">{google ? (google.status === "ativa" ? `Conectado${google.last_synced_at ? ` · sincronizado em ${new Date(google.last_synced_at).toLocaleString("pt-BR")}` : ""}` : `Erro: ${google.last_error ?? "reconecte sua conta"}`) : "Sincronização bidirecional dos seus compromissos."}</p>
         </div>
-        {google ? <Button size="sm" variant="ghost" className="text-error" onClick={() => setDisconnect(true)}>Desconectar</Button> : <a href="/api/google/connect" className="inline-flex h-9 items-center gap-1.5 rounded-pill bg-primary px-3.5 text-sm font-semibold text-primary-ink"><ExternalLink className="size-4" aria-hidden />Conectar</a>}
+        {isLocalMode ? <span className="text-xs text-muted">Disponível na versão online</span> : google ? <Button size="sm" variant="ghost" className="text-error" onClick={() => setDisconnect(true)}>Desconectar</Button> : <a href="/api/google/connect" className="inline-flex h-9 items-center gap-1.5 rounded-pill bg-primary px-3.5 text-sm font-semibold text-primary-ink"><ExternalLink className="size-4" aria-hidden />Conectar</a>}
       </Card>
 
       <SectionTitle><Shield className="mr-2 inline size-4 text-primary" aria-hidden /><span id="privacidade">Privacidade e dados (LGPD)</span></SectionTitle>
@@ -133,9 +142,13 @@ export default function SettingsPage() {
         <Button variant="outline" className="w-full" loading={busy === "export"} icon={<Download className="size-4" />} onClick={async () => {
           setBusy("export");
           try {
-            const res = await fetch("/api/account/export");
-            if (!res.ok) throw new Error();
-            download(`vilma-meus-dados-${new Date().toISOString().slice(0, 10)}.json`, await res.blob());
+            if (isLocalMode) {
+              download(`vilma-meus-dados-${new Date().toISOString().slice(0, 10)}.json`, JSON.stringify(exportLocalData(), null, 2), "application/json");
+            } else {
+              const res = await fetch("/api/account/export");
+              if (!res.ok) throw new Error();
+              download(`vilma-meus-dados-${new Date().toISOString().slice(0, 10)}.json`, await res.blob());
+            }
           } catch {
             toast.show("Não foi possível exportar agora.", "error");
           } finally {
@@ -162,12 +175,18 @@ export default function SettingsPage() {
         onConfirm={async () => {
           if (deleteText.trim().toUpperCase() !== "EXCLUIR") return toast.show("Digite EXCLUIR para confirmar.", "error");
           setBusy("delete");
+          if (isLocalMode) {
+            deleteLocalAccount();
+            try { Object.keys(localStorage).filter((k) => k.startsWith("vilma:")).forEach((k) => localStorage.removeItem(k)); } catch {}
+            window.location.href = withBase("/?conta=excluida");
+            return;
+          }
           const res = await fetch("/api/account/delete", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ confirm: "EXCLUIR" }) });
           setBusy(null);
           if (!res.ok) return toast.show((await res.json()).error ?? "Não foi possível excluir.", "error");
           try { localStorage.clear(); } catch {}
           await getSupabase().auth.signOut();
-          window.location.href = "/?conta=excluida";
+          window.location.href = withBase("/?conta=excluida");
         }}
       />
     </>
@@ -201,5 +220,43 @@ function CategoriesEditor() {
       </form>
       <Badge tone="neutral">Excluir uma categoria não apaga registros — eles ficam “sem categoria”.</Badge>
     </Card>
+  );
+}
+
+function PushToggle() {
+  const toast = useToast();
+  const [on, setOn] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const supported = typeof window !== "undefined" && pushSupported();
+  useEffect(() => {
+    void currentSubscription().then((s) => setOn(!!s));
+  }, []);
+  if (isLocalMode) return <p className="py-2 text-xs text-muted">Notificações com o app fechado chegam com a versão online. No modo local, os lembretes funcionam com o app aberto ou usado recentemente.</p>;
+  if (!vapidKey) return <p className="py-2 text-xs text-muted">Notificações com o app fechado: aguardando configuração das chaves VAPID no servidor. Com o app aberto, os lembretes funcionam normalmente.</p>;
+  return (
+    <div className="py-1">
+      <Toggle
+        checked={on}
+        disabled={busy || !supported}
+        onChange={async (b) => {
+          setBusy(true);
+          try {
+            if (b) {
+              const r = await enablePush();
+              if (!r.ok) toast.show(r.error ?? "Não foi possível ativar.", "error");
+              setOn(r.ok);
+            } else {
+              await disablePush();
+              setOn(false);
+            }
+          } finally {
+            setBusy(false);
+          }
+        }}
+        label="Receber com o app fechado (push)"
+        description={supported ? "Lembretes, vencimentos e resumos chegam mesmo com o app fechado neste dispositivo." : "Não suportado neste navegador. No iPhone, instale o app na Tela de Início (iOS 16.4+)."}
+      />
+      {on && <Button size="sm" variant="ghost" onClick={async () => { const r = await fetch("/api/push/test", { method: "POST" }); const j = await r.json(); toast.show(r.ok ? (j.sent ? "Notificação de teste enviada." : "Nenhum dispositivo inscrito.") : j.error, r.ok ? "success" : "error"); }}>Enviar notificação de teste</Button>}
+    </div>
   );
 }

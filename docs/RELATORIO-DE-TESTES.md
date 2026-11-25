@@ -9,11 +9,12 @@ Execução em 25/11/2026, num container Linux (Node 22, PostgreSQL 16.15, Chromi
 | TypeScript (`tsc --noEmit`) | TypeScript 5.9 | ✅ sem erros |
 | Lint (`next build`) | ESLint + next/core-web-vitals | ✅ 0 erros, 0 avisos |
 | Build de produção | Next.js 15.5 | ✅ todas as páginas e APIs compiladas |
-| Unitários | Vitest 3.2 | ✅ **53/53** |
-| Banco de dados (migrations + RLS) | PostgreSQL 16 + psql | ✅ 11 grupos de asserções |
-| End-to-end | Playwright 1.63 (Pixel 7 e desktop 1366px) | ✅ **23/23** (+1 suíte de capturas sob demanda) |
+| Unitários | Vitest 3.2 | ✅ **57/57** |
+| Banco de dados (migrations + RLS) | PostgreSQL 16 + psql | ✅ 12 grupos de asserções |
+| End-to-end | Playwright 1.63 (Pixel 7 e desktop 1366px) | ✅ **24/24** (+1 suíte de capturas sob demanda)
+| End-to-end da versão local (site estático em subpasta) | Playwright | ✅ **2/2** | |
 
-## Testes unitários (`npm test`) — 53
+## Testes unitários (`npm test`) — 57
 
 - **Datas e fuso** (6): data local em São Paulo × UTC perto da meia-noite, conversão local→UTC (inclusive com horário de verão em Lisboa), aritmética de datas (fim de mês, ano bissexto), formatos DD/MM/AAAA, saudação por horário, rótulos de duração.
 - **Dinheiro** (4): interpretação de “R$ 1.234,56”, “3 mil”, “84,90”; formatação BRL; ausência de erro de ponto flutuante; parcelas que somam exatamente o total.
@@ -21,7 +22,8 @@ Execução em 25/11/2026, num container Linux (Node 22, PostgreSQL 16.15, Chromi
 - **Recorrência** (5): diária com intervalo, semanal por dias, mensal com dia 31, `until`/`count`, próxima ocorrência anual a partir de 29/02.
 - **Bem-estar** (8): sono atravessando a meia-noite, estatísticas e dívida de sono, previsão de ciclo (com e sem histórico), sequências de hábitos (sem punir o dia corrente), dias específicos, metas quantitativas, “x vezes por semana”.
 - **Tarefas, conflitos, gamificação, pomodoro** (8): status atrasada derivado, ordenação, indicadores, sugestão de reagendamento, sobreposição de horários, níveis, cronômetro baseado em timestamps (consistente ao navegar), ciclo foco/pausas.
-- **Linguagem natural** (3): “amanhã”, “sexta”, “dia 10”, “15/01”, “daqui a 3 dias”, “às 7h”, “19h30”, “3 da tarde” e comandos completos (agendar, despesa, receita, lembrete, sono, água).
+- **Linguagem natural** (4): inclui valores sem “R$” após verbos de dinheiro (“gastei 45,90 no mercado”) sem confundir com datas (“dia 10”);: “amanhã”, “sexta”, “dia 10”, “15/01”, “daqui a 3 dias”, “às 7h”, “19h30”, “3 da tarde” e comandos completos (agendar, despesa, receita, lembrete, sono, água).
+- **Web Push** (3): payload com tamanho limitado e somente links internos; envio por dispositivo com remoção de inscrições expiradas (410); nada é enviado sem chaves VAPID.
 - **Ferramentas da Vilma** (9): esquemas válidos; parâmetros inválidos rejeitados antes do banco; ferramenta desconhecida bloqueada; **exclusão gera ação pendente e não executa**; execução só após confirmação; alteração em massa exige confirmação; sem conta cadastrada não inventa saldo; valor decimal exato; sono por duração.
 
 ## Banco de dados (`npm run test:db`)
@@ -37,10 +39,11 @@ Aplica as 3 migrations sobre um shim do Supabase (`auth.uid()`, papéis `anon`/`
 7. Pontos só via `award_points()`, com deduplicação; escrita direta bloqueada.
 8. Rate limit bloqueia acima do limite.
 9. Upload em pasta de outra usuária no Storage é bloqueado.
-10. Papel anônimo não lê dados.
-11. Exclusão da conta remove todos os dados em cascata.
+10. Inscrições de push: somente da própria usuária e apenas endpoints https.
+11. Papel anônimo não lê dados.
+12. Exclusão da conta remove todos os dados em cascata.
 
-## End-to-end (`npm run test:e2e`) — 23
+## End-to-end (`npm run test:e2e`) — 24
 
 Ambiente: build de produção do app + PostgreSQL real com as migrations + **shim HTTP compatível com o Supabase** (`tests/e2e/supabase-shim/server.mjs`, apenas para testes) que executa SQL real sob o papel da usuária — ou seja, o **RLS real** é exercitado.
 
@@ -65,6 +68,7 @@ Ambiente: build de produção do app + PostgreSQL real com as migrations + **shi
 | Isolamento entre usuárias pela interface e por chamadas diretas à API | mobile |
 | Offline: alteração entra na fila, aviso exibido e sincroniza ao reconectar | mobile |
 | LGPD: exportação de dados (sem tokens) e exclusão definitiva da conta | mobile |
+| Automações: tarefas atrasadas, sugestão de reagendamento, lembrete no horário exato, geração de contas fixas, idempotência e exibição em Notificações | mobile |
 | Sem rolagem horizontal/conteúdo cortado em 24 telas, sem erros de JavaScript | mobile e desktop |
 | Acessibilidade axe WCAG 2 A/AA sem violações críticas/sérias (10 telas) | mobile e desktop |
 
@@ -79,6 +83,15 @@ Ambiente: build de produção do app + PostgreSQL real com as migrations + **shi
 - Calendário com ARIA `grid` incompleto → grupo de botões rotulados.
 - Logo sem gradiente quando havia mais de uma instância → ids únicos.
 - Eixos de gráfico com rótulos cortados → largura ajustada.
+- Contas fixas geradas numa execução só eram avisadas na execução seguinte → transações recarregadas após a geração.
+
+## Versão local (`playwright.local.config.ts`)
+
+Build estático com `basePath=/ROTINA-PESSOAL` servido como no GitHub Pages:
+1. Cadastro e onboarding locais, “Nova ação”, saldo real, Vilma local registrando gasto e listando tarefas, persistência após recarregar, 21 telas sem erro e sem rolagem horizontal, sair/entrar e exportação de dados.
+2. Duas contas no mesmo aparelho não enxergam os dados uma da outra.
+
+Problema encontrado e corrigido: “gastei 45,90 no mercado” (sem “R$”) não era reconhecido como valor.
 
 ## O que NÃO foi testado neste ambiente (e por quê)
 
@@ -89,7 +102,7 @@ Ambiente: build de produção do app + PostgreSQL real com as migrations + **shi
 | Supabase hospedado (Auth por e-mail real, Storage, Realtime) | substituído pelo shim de testes; uploads (foto, anexos, vision board) e Realtime não foram exercitados |
 | Login com Google | depende de provedor configurado no Supabase |
 | Instalação do PWA em aparelhos físicos iOS/Android | ambiente sem dispositivos; manifesto, ícones e SW verificados por E2E |
-| Notificações do sistema | requerem permissão interativa do navegador |
+| Notificações do sistema e entrega real de Web Push | requerem permissão interativa e serviço de push do navegador; envio coberto por teste unitário com remetente simulado |
 
 ## Como reproduzir
 

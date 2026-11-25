@@ -127,6 +127,22 @@ do $$ begin
   end;
 end $$;
 
+-- 9b) Web Push: inscrição só da própria usuária
+do $$ begin
+  insert into public.push_subscriptions (endpoint, p256dh, auth) values ('https://push.example/bia', 'k', 'a');
+  begin
+    insert into public.push_subscriptions (user_id, endpoint, p256dh, auth) values ('11111111-1111-1111-1111-111111111111', 'https://push.example/x', 'k', 'a');
+    raise exception 'FALHA: inscrição em nome de outra usuária';
+  exception when insufficient_privilege then null;
+  end;
+  begin
+    insert into public.push_subscriptions (endpoint, p256dh, auth) values ('http://inseguro', 'k', 'a');
+    raise exception 'FALHA: endpoint sem https aceito';
+  exception when check_violation then null;
+  end;
+  assert (select count(*) from public.push_subscriptions) = 1, 'Bia deveria ver só a própria inscrição';
+end $$;
+
 -- 10) anon não lê nada
 reset role;
 set local role anon;

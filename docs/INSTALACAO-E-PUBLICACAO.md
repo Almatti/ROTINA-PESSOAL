@@ -9,6 +9,7 @@ Este guia leva o app do zero até publicado na internet. Tempo estimado: 30–60
    1. `supabase/migrations/20261125000001_schema.sql`
    2. `supabase/migrations/20261125000002_seed_and_defaults.sql`
    3. `supabase/migrations/20261125000003_storage.sql`
+   4. `supabase/migrations/20261125000004_push_subscriptions.sql`
 
    Alternativa com a CLI: `npx supabase link --project-ref SEU_REF` e `npx supabase db push`.
 3. Em **Project Settings › API**, copie:
@@ -36,7 +37,15 @@ Este guia leva o app do zero até publicado na internet. Tempo estimado: 30–60
 4. Configure `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `INTEGRATIONS_ENCRYPTION_KEY` (`openssl rand -base64 32`) e `SUPABASE_SERVICE_ROLE_KEY`.
 5. Para publicar para qualquer pessoa, o Google exige a verificação do app (escopos sensíveis).
 
-## 4. Rodando localmente
+## 4. Notificações com o app fechado (Web Push)
+
+1. Gere as chaves: `npx web-push generate-vapid-keys`.
+2. Configure `NEXT_PUBLIC_VAPID_PUBLIC_KEY` (pública), `VAPID_PRIVATE_KEY` (somente servidor) e `VAPID_SUBJECT` (ex.: `mailto:contato@seudominio.com.br`).
+3. Aplique a migration `20261125000004_push_subscriptions.sql`.
+4. Cada usuária ativa em **Configurações › Notificações › Receber com o app fechado** (no iPhone, é preciso instalar o app na Tela de Início, iOS 16.4+).
+5. **Frequência:** o `vercel.json` agenda as automações 1x por dia (limite do plano Hobby da Vercel). Para lembretes no horário exato (“30 min antes”), agende `GET /api/cron/automations` a cada 15 minutos — no plano Pro da Vercel (troque o `schedule` para `*/15 * * * *`) ou num agendador externo (ex.: cron-job.org, GitHub Actions) enviando o header `Authorization: Bearer SEU_CRON_SECRET`. O motor é idempotente: rodar várias vezes não duplica avisos nem lançamentos.
+
+## 5. Rodando localmente
 
 ```bash
 npm install
@@ -44,7 +53,7 @@ cp .env.example .env.local   # preencha
 npm run dev
 ```
 
-## 5. Publicação na Vercel
+## 6. Publicação na Vercel
 
 1. Envie o repositório ao GitHub e importe em <https://vercel.com/new>.
 2. Em *Settings › Environment Variables*, cadastre todas as variáveis do `.env.example` (com `NEXT_PUBLIC_SITE_URL` = URL final).
@@ -52,15 +61,16 @@ npm run dev
 4. Faça o deploy. Depois, atualize a *Site URL* e *Redirect URLs* no Supabase e o redirect do Google com o domínio final.
 5. Domínio próprio: *Settings › Domains* na Vercel.
 
-## 6. Checklist pós-publicação
+## 7. Checklist pós-publicação
 
 - [ ] Cadastro, confirmação de e-mail e login funcionando
 - [ ] `/configuracao` mostrando as variáveis como “configurada”
 - [ ] Preencher controlador/encarregado (DPO) em `src/app/(public)/privacidade/page.tsx` e revisar os Termos com assessoria jurídica
 - [ ] Testar a Vilma com uma mensagem simples
 - [ ] Conectar o Google Agenda em Configurações › Integrações
+- [ ] Ativar o push num celular e tocar em “Enviar notificação de teste”
 - [ ] Instalar o app no celular (Compartilhar › Adicionar à Tela de Início no iPhone; menu › Instalar no Android)
 
-## 7. Banco de testes local (desenvolvedores)
+## 8. Banco de testes local (desenvolvedores)
 
 `npm run test:db` aplica as migrations num PostgreSQL local (com um *shim* que emula `auth.uid()` e papéis do Supabase) e roda os testes de RLS. `npm run test:e2e` sobe também um shim HTTP compatível com o Supabase (somente para testes) e executa o Playwright. Ver `docs/RELATORIO-DE-TESTES.md`.

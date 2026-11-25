@@ -1,0 +1,41 @@
+# Publica a versão "modo local" (site estático, dados no aparelho) no GitHub Pages.
+# Ativação única: Settings › Pages › Build and deployment › Source: "Deploy from a branch"
+#                 › Branch: gh-pages / (root) › Save.
+# Endereço: https://<usuario>.github.io/<repositorio>/
+name: Publicar versão local (GitHub Pages)
+
+on:
+  push:
+    branches: [main, "claude/vilma-personal-organization-app-v9srli"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: pages-local
+  cancel-in-progress: true
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - name: Gerar site estático (modo local)
+        run: bash scripts/build-local.sh
+        env:
+          NEXT_PUBLIC_BASE_PATH: /${{ github.event.repository.name }}
+      - name: Publicar na branch gh-pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./out
+          publish_branch: gh-pages
+          force_orphan: true
+          commit_message: "Publica versão local da Vilma"

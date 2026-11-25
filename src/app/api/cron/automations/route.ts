@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { timingSafeEqual } from "node:crypto";
 import { getAdminSupabase, isAdminConfigured } from "@/lib/supabase/admin";
 import { runAutomationsForUser } from "@/lib/automation/engine";
+import { sendPushToUser } from "@/lib/push/send";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -20,7 +21,7 @@ export async function GET(req: NextRequest) {
     if (!profiles?.length) break;
     for (const p of profiles) {
       try {
-        const r = await runAutomationsForUser(admin, p);
+        const r = await runAutomationsForUser(admin, p, new Date(), (n) => sendPushToUser(admin, p.id, n));
         processed++;
         created += r.created;
       } catch {

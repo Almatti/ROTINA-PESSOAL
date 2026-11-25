@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { isGoogleAuthEnabled } from "@/lib/env";
 import { AuthShell } from "@/components/auth/auth-shell";
 import { GoogleButton } from "@/components/auth/google-button";
 import { Button, Field, Input, ErrorNote } from "@/components/ui/primitives";
@@ -53,7 +54,7 @@ export default function SignupPage() {
   return (
     <AuthShell title="Crie sua conta" subtitle="Leva menos de um minuto. Você pode personalizar tudo depois." footer={<>Já tem conta? <Link className="font-semibold text-primary" href="/entrar">Entrar</Link></>}>
       <GoogleButton next="/onboarding" />
-      <div className="my-6 flex items-center gap-3 text-xs text-muted"><span className="h-px flex-1 bg-line" />ou com e-mail<span className="h-px flex-1 bg-line" /></div>
+      {isGoogleAuthEnabled && <div className="my-6 flex items-center gap-3 text-xs text-muted"><span className="h-px flex-1 bg-line" />ou com e-mail<span className="h-px flex-1 bg-line" /></div>}
       <form onSubmit={onSubmit} noValidate className="space-y-4">
         {formError && <ErrorNote message={formError} />}
         <Field label="Nome" error={errors.name}>{(id, d) => <Input id={id} name="name" autoComplete="name" aria-describedby={d} invalid={!!errors.name} />}</Field>

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getUser } from "@/lib/supabase/server";
 import { runAutomationsForUser } from "@/lib/automation/engine";
+import { sendPushToUser } from "@/lib/push/send";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -14,7 +15,7 @@ export async function POST() {
   const { data: profile } = await sb.from("profiles").select("id,timezone,notification_prefs").eq("id", user.id).single();
   if (!profile) return NextResponse.json({ error: "Perfil não encontrado." }, { status: 404 });
   try {
-    const r = await runAutomationsForUser(sb, profile);
+    const r = await runAutomationsForUser(sb, profile, new Date(), (n) => sendPushToUser(sb, user.id, n));
     return NextResponse.json(r);
   } catch {
     return NextResponse.json({ error: "Falha ao executar automações." }, { status: 500 });

@@ -15,9 +15,9 @@ Arquivo de acompanhamento para retomar o projeto a qualquer momento.
 | 6. Sono, humor, ciclo, hidratação e treinos | ✅ | Todos os módulos + hub Bem-estar |
 | 7. Trabalho, estudos, casa, anotações e metas | ✅ | Todos os módulos + modo foco |
 | 8. Vilma (IA) | ✅ | Chat, voz, histórico, 25 ferramentas, confirmação de ações sensíveis |
-| 9. Integrações e automações | ✅* | Google Agenda (OAuth + sync bidirecional), 12 automações, Vercel Cron |
+| 9. Integrações e automações | ✅* | Google Agenda (OAuth + sync bidirecional), 12 automações + lembretes no horário, Vercel Cron, Web Push |
 | 10. Gamificação e personalizações | ✅ | Pontos, níveis, medalhas, avatar, widgets, temas |
-| 11. Segurança, testes e otimização | ✅ | 53 unitários, testes SQL de RLS, 23 E2E com RLS real, axe WCAG AA |
+| 11. Segurança, testes e otimização | ✅ | 56 unitários, testes SQL de RLS, 24 E2E com RLS real, axe WCAG AA |
 | 12. Publicação e documentação | ✅ | README, docs/, .env.example, vercel.json |
 
 \* Implementado e compilado; depende de credenciais externas para teste real.
@@ -34,22 +34,28 @@ Arquivo de acompanhamento para retomar o projeto a qualquer momento.
 - Texto secundário usa Dusky Lilac escurecido (#6E5975) e cores semânticas ajustadas para contraste AA.
 - Protótipo original preservado em `legacy/` (os módulos “Remédios” e “Devocional” dele podem ser adicionados como hábitos/anotações).
 
+## Modo local (uso imediato)
+
+Versão estática sem servidor (`npm run build:local`), publicada pelo workflow `pages-local.yml` na branch `gh-pages`. Endereço após ativar o Pages: https://almatti.github.io/ROTINA-PESSOAL/
+
 ## Pendências / próximos passos
 
-1. **Web Push** (lembretes com o app fechado): gerar chaves VAPID, tabela de inscrições e envio pelo cron.
+1. Web Push ✅ implementado — falta configurar chaves VAPID e um agendamento a cada 15 min para lembretes no minuto exato.
 2. Validar a Vilma com `ANTHROPIC_API_KEY` real (ajustar prompt/effort conforme uso).
 3. Validar Google Agenda com credenciais reais e passar pela verificação do Google.
 4. Preencher controlador/DPO na Política de Privacidade e revisar Termos juridicamente.
 5. Traduzir templates de e-mail do Supabase.
 6. Cobertura E2E para Storage (foto, anexos, vision board) e Realtime em ambiente Supabase real.
-7. Ideias: importação de extrato OFX/CSV, widgets de tela inicial nativos, remédios/devocional do protótipo.
+7. Migrar dados do modo local para a versão online (importar o JSON exportado).
+8. Ideias: importação de extrato OFX/CSV, widgets de tela inicial nativos, remédios/devocional do protótipo.
 
 ## Resultados de testes (última execução)
 
 - `tsc`: OK · `next build` (com lint): OK, 0 avisos
-- `npm test`: 53/53 ✅
+- `npm test`: 57/57 ✅
+- E2E modo local: 2/2 ✅
 - `npm run test:db`: OK ✅
-- `npm run test:e2e`: 23/23 ✅ (mobile Pixel 7 + desktop 1366px)
+- `npm run test:e2e`: 24/24 ✅ (mobile Pixel 7 + desktop 1366px)
 
 Detalhes: `docs/RELATORIO-DE-TESTES.md`.
 

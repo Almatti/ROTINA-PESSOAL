@@ -116,8 +116,9 @@ export function AppShell({ children }: { children: ReactNode }) {
   const path = usePathname();
 
   useEffect(() => {
+    if (!loading && !user) router.replace(`/entrar?next=${encodeURIComponent(path)}`);
     if (!loading && user && profile && !profile.onboarding_completed) router.replace("/onboarding");
-  }, [loading, user, profile, router]);
+  }, [loading, user, profile, router, path]);
 
   useEffect(() => {
     setMenuOpen(false);

@@ -5,6 +5,7 @@ import { AuthShell } from "@/components/auth/auth-shell";
 import { Button, Field, Input, ErrorNote } from "@/components/ui/primitives";
 import { getSupabase } from "@/lib/supabase/client";
 import { emailSchema, authErrorMessage } from "@/lib/validation/auth";
+import { isLocalMode } from "@/lib/env";
 
 export default function RecoverPage() {
   const [error, setError] = useState<string | null>(null);
@@ -28,7 +29,9 @@ export default function RecoverPage() {
 
   return (
     <AuthShell title="Recuperar senha" subtitle="Enviaremos um link para você criar uma nova senha." footer={<Link className="font-semibold text-primary" href="/entrar">Voltar para o login</Link>}>
-      {sent ? (
+      {isLocalMode ? (
+        <div className="card p-6 text-sm" role="status">No modo local não há envio de e-mail, pois os dados ficam só neste aparelho. Se você esqueceu a senha, crie uma nova conta neste aparelho — ou, depois de ativar a versão online, recupere por e-mail normalmente.</div>
+      ) : sent ? (
         <div className="card p-6 text-center" role="status">Se houver uma conta com este e-mail, você receberá o link em instantes. Confira também a caixa de spam.</div>
       ) : (
         <form onSubmit={onSubmit} noValidate className="space-y-4">

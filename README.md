@@ -6,6 +6,17 @@ Central inteligente de organização pessoal em português: **agenda, tarefas, h
 
 <p align="center"><img src="docs/capturas/inicio.png" width="230" alt="Início"> <img src="docs/capturas/meu-plano.png" width="230" alt="Meu plano"> <img src="docs/capturas/financas.png" width="230" alt="Finanças"> <img src="docs/capturas/sono-escuro.png" width="230" alt="Sono (modo escuro)"></p>
 
+## Usar agora (modo local, sem servidor)
+
+Existe uma versão que funciona **sem Supabase e sem servidor**: os dados ficam guardados no próprio aparelho/navegador.
+
+- **Endereço (após ativar o GitHub Pages uma vez):** `https://almatti.github.io/ROTINA-PESSOAL/`
+- **Ativação (uma única vez):** no GitHub, *Settings › Pages › Build and deployment › Source: Deploy from a branch › Branch: `gh-pages` / `(root)` › Save*. A publicação é automática a cada atualização (workflow `.github/workflows/pages-local.yml`).
+- **Gerar localmente:** `npm run build:local` (saída em `out/`, publique em qualquer hospedagem estática).
+
+Funciona no modo local: todas as telas e módulos, contas locais, gráficos, automações (rodam ao abrir o app), lembretes com o app aberto, exportação/exclusão de dados e uma **Vilma local** que entende comandos simples (“gastei 45,90 no mercado”, “academia amanhã às 7h”, “quais tarefas estão pendentes?”, “quanto gastei este mês?”, “resumo da semana”).
+Fica para a versão online: sincronização entre aparelhos, recuperação de senha por e-mail, login com Google, IA completa (Anthropic), Google Agenda e push com o app fechado. Faça backups em *Configurações › Privacidade › Exportar*.
+
 ## Sumário
 
 - [Funcionalidades](#funcionalidades)
@@ -33,7 +44,7 @@ Central inteligente de organização pessoal em português: **agenda, tarefas, h
 | **Automações** | 12 automações configuráveis (recorrências, contas fixas, atrasadas, reagendamento sugerido, compromissos próximos, vencimentos, resumo da manhã, revisão da noite, planejamento semanal, relatório mensal, metas, progresso) via Vercel Cron + execução manual |
 | **Gamificação** | Pontos, níveis, medalhas, avatar personalizável com molduras por nível, progresso semanal/mensal — sem punições |
 | **Privacidade (LGPD)** | Consentimentos registrados, política de privacidade, exportação de dados (JSON), exclusão de conta, revogação de IA/integrações, dados sensíveis protegidos, RLS por usuária, limitação de requisições |
-| **PWA** | Manifesto, ícones próprios, service worker, instalação, uso offline das telas já visitadas, fila de alterações offline com sincronização automática, notificações locais |
+| **PWA** | Manifesto, ícones próprios, service worker, instalação, uso offline das telas já visitadas, fila de alterações offline com sincronização automática, notificações locais e Web Push (com o app fechado) |
 
 \* “Atrasada” é derivada automaticamente do prazo.
 
@@ -62,9 +73,11 @@ Sem Supabase configurado, o app mostra a página **/configuracao** listando o qu
 | `NEXT_PUBLIC_SITE_URL` | sim em produção | redirecionamentos de login e OAuth |
 | `SUPABASE_SERVICE_ROLE_KEY` | recomendada | exclusão de conta, Google Agenda, cron de automações (somente servidor) |
 | `ANTHROPIC_API_KEY` (`ANTHROPIC_MODEL` opcional) | para a Vilma | assistente de IA (somente servidor) |
+| `NEXT_PUBLIC_GOOGLE_AUTH` | para login com Google | `1` mostra “Continuar com Google” (ative antes o provedor Google no Supabase) |
 | `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | para Google Agenda | OAuth (somente servidor) |
 | `INTEGRATIONS_ENCRYPTION_KEY` | para Google Agenda | criptografia AES-256-GCM dos tokens (`openssl rand -base64 32`) |
 | `CRON_SECRET` | para automações agendadas | autenticação do Vercel Cron |
+| `NEXT_PUBLIC_VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` / `VAPID_SUBJECT` | para push | notificações com o app fechado (`npx web-push generate-vapid-keys`) |
 
 Nenhuma chave privada é exposta ao navegador.
 
@@ -78,6 +91,8 @@ Nenhuma chave privada é exposta ao navegador.
 | `npm run test:db` | migrations + testes de RLS/integridade num PostgreSQL local |
 | `npm run test:e2e` | E2E (Playwright) com PostgreSQL real e shim do Supabase |
 | `npm run icons` | regenera os ícones do PWA |
+| `npm run build:local` | gera a versão modo local (site estático em `out/`) |
+| `npx playwright test -c playwright.local.config.ts` | E2E da versão local (após `NEXT_PUBLIC_BASE_PATH=/ROTINA-PESSOAL npm run build:local`) |
 
 ## Estrutura do projeto
 
@@ -115,4 +130,4 @@ legacy/                protótipo original (HTML/JS) mantido como referência
 | Vilma (Anthropic) | implementado; requer `ANTHROPIC_API_KEY`; não foi testado contra a API real neste ambiente |
 | Google Agenda | implementado (OAuth + sincronização bidirecional); requer credenciais Google Cloud; não testado contra o Google real |
 | Automações agendadas | implementado; requer `CRON_SECRET` e deploy na Vercel |
-| Notificações com o app fechado (Web Push) | **pendente** — hoje os lembretes são locais (app aberto/recente) |
+| Notificações com o app fechado (Web Push) | implementado; requer chaves VAPID; para lembretes no minuto certo, agende o cron a cada 15 min (Vercel Pro ou agendador externo) |

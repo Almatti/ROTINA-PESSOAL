@@ -13,6 +13,8 @@ import { useTable } from "@/lib/data/hooks";
 import { invalidate, mutate } from "@/lib/data/store";
 import { getSupabase } from "@/lib/supabase/client";
 import { useToast } from "@/components/ui/toast";
+import { isLocalMode } from "@/lib/env";
+import { localAssistant } from "@/lib/local/vilma-local";
 
 interface Msg { id?: string; role: "user" | "assistant"; content: string; actions?: { tool: string; ok?: boolean; summary?: string; error?: string; pending_id?: string }[]; error?: boolean }
 interface Conv { id: string; title: string; updated_at: string }
@@ -31,7 +33,7 @@ const SUGGESTIONS = [
 type SR = { lang: string; interimResults: boolean; continuous: boolean; start: () => void; stop: () => void; onresult: (e: { results: ArrayLike<ArrayLike<{ transcript: string }>> }) => void; onend: () => void; onerror: () => void };
 
 function VilmaInner() {
-  const { displayName, profile, updateProfile } = useSession();
+  const { displayName, profile, updateProfile, today, tz } = useSession();
   const toast = useToast();
   const params = useSearchParams();
   const [conversationId, setConversationId] = useState<string | null>(null);
@@ -72,10 +74,30 @@ function VilmaInner() {
   async function send(text: string) {
     const msg = text.trim();
     if (!msg || busy) return;
-    if (!navigator.onLine) return toast.show("A Vilma precisa de internet para responder.", "error");
+    if (!isLocalMode && !navigator.onLine) return toast.show("A Vilma precisa de internet para responder.", "error");
     setInput("");
     setMessages((m) => [...m, { role: "user", content: msg }]);
     setBusy(true);
+    if (isLocalMode) {
+      // modo local: assistente por regras, com dados do próprio aparelho
+      try {
+        const sb = getSupabase();
+        let conv = conversationId;
+        if (!conv) {
+          const { data } = await sb.from("conversations").insert({ title: msg.slice(0, 60) }).select("id").single();
+          conv = (data as { id: string } | null)?.id ?? null;
+          setConversationId(conv);
+        }
+        const r = await localAssistant(msg, { sb, today, tz, wakeTime: profile?.wake_time ?? null });
+        if (conv) await sb.from("messages").insert([{ conversation_id: conv, role: "user", content: msg }, { conversation_id: conv, role: "assistant", content: r.reply, actions: r.actions }]);
+        setMessages((m) => [...m, { role: "assistant", content: r.reply, actions: r.actions }]);
+        if (r.actions.some((a) => a.ok)) invalidate("tasks", "events", "transactions", "sleep_logs", "water_logs", "shopping_lists", "shopping_items", "notes");
+        invalidate("conversations");
+      } finally {
+        setBusy(false);
+      }
+      return;
+    }
     try {
       const res = await fetch("/api/vilma", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ conversationId, message: msg }) });
       const j = await res.json();
@@ -119,7 +141,7 @@ function VilmaInner() {
     rec.start();
   }
 
-  if (profile && !consent) {
+  if (profile && !consent && !isLocalMode) {
     return (
       <>
         <PageHeader title="Vilma" icon={<LogoMark size={26} />} />
@@ -150,7 +172,7 @@ function VilmaInner() {
           <div className="pt-4 text-center">
             <LogoMark size={64} className="mx-auto" />
             <p className="mt-3 text-lg font-bold">Oi{displayName ? `, ${displayName}` : ""}! 💜 Eu sou a Vilma.</p>
-            <p className="mx-auto mt-1 max-w-sm text-sm text-ink-soft">Me conta como é o seu dia. Pode escrever ou apertar o microfone e falar.</p>
+            <p className="mx-auto mt-1 max-w-sm text-sm text-ink-soft">Me conta como é o seu dia. Pode escrever ou apertar o microfone e falar.{isLocalMode && " (Modo local: entendo comandos simples; a IA completa chega com a versão online.)"}</p>
             <div className="mt-5 flex flex-wrap justify-center gap-2">
               {SUGGESTIONS.map((s) => <button key={s} onClick={() => send(s)} className="rounded-pill border border-line bg-surface px-3.5 py-2 text-sm text-ink-soft hover:bg-primary-soft hover:text-primary-soft-ink">{s}</button>)}
             </div>
