@@ -120,10 +120,17 @@ async function handleAuth(req, res, path, url) {
   }
   if (path === "/auth/v1/logout") return send(res, 204);
   if (path === "/auth/v1/recover") return send(res, 200, {});
-  if (path.startsWith("/auth/v1/admin/users/") && req.method === "DELETE") {
+  if (path.startsWith("/auth/v1/admin/users/")) {
     if (verify(bearer)?.role !== "service_role") return send(res, 403, { msg: "forbidden" });
-    await pool.query("delete from auth.users where id=$1", [path.split("/").pop()]);
-    return send(res, 200, {});
+    const id = path.split("/").pop();
+    if (req.method === "GET") {
+      const { rows } = await pool.query("select * from auth.users where id=$1", [id]);
+      return rows.length ? send(res, 200, publicUser(rows[0])) : send(res, 404, { code: 404, msg: "User not found" });
+    }
+    if (req.method === "DELETE") {
+      await pool.query("delete from auth.users where id=$1", [id]);
+      return send(res, 200, {});
+    }
   }
   if (path === "/auth/v1/settings") return send(res, 200, { external: { email: true, google: false } });
   return send(res, 404, { msg: `auth endpoint não emulado: ${req.method} ${path}` });

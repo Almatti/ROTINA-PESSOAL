@@ -15,15 +15,20 @@ export async function POST(req: NextRequest) {
   const admin = getAdminSupabase();
   try {
     await revokeGoogle(admin, user.id).catch(() => undefined);
-    // remove arquivos do Storage (pasta da usuária)
+    // remove arquivos do Storage (pasta da usuária). Falhas são registradas, sem bloquear a exclusão dos dados.
     for (const folder of ["avatar", "notas", "vision"]) {
-      const { data: files } = await admin.storage.from("user-files").list(`${user.id}/${folder}`, { limit: 1000 });
-      if (files?.length) await admin.storage.from("user-files").remove(files.map((f) => `${user.id}/${folder}/${f.name}`));
+      try {
+        const { data: files } = await admin.storage.from("user-files").list(`${user.id}/${folder}`, { limit: 1000 });
+        if (files?.length) await admin.storage.from("user-files").remove(files.map((f) => `${user.id}/${folder}/${f.name}`));
+      } catch (err) {
+        console.error("[conta] falha ao limpar storage:", (err as Error).message);
+      }
     }
     const { error } = await admin.auth.admin.deleteUser(user.id);
     if (error) throw error;
     return NextResponse.json({ ok: true });
-  } catch {
+  } catch (err) {
+    console.error("[conta] falha na exclusão:", (err as Error).message);
     return NextResponse.json({ error: "Não foi possível excluir a conta agora. Tente novamente." }, { status: 500 });
   }
 }
