@@ -11,7 +11,7 @@ Execução em 25/11/2026, num container Linux (Node 22, PostgreSQL 16.15, Chromi
 | Build de produção | Next.js 15.5 | ✅ todas as páginas e APIs compiladas |
 | Unitários | Vitest 3.2 | ✅ **80/80** |
 | Banco de dados (migrations + RLS) | PostgreSQL 16 + psql | ✅ 13 grupos de asserções |
-| End-to-end | Playwright 1.63 (Pixel 7 e desktop 1366px) | ✅ **24/24** (+1 suíte de capturas sob demanda)
+| End-to-end | Playwright 1.63 (Pixel 7 e desktop 1366px) | ✅ **25/25** (+1 suíte de capturas sob demanda)
 | End-to-end da versão local (site estático em subpasta) | Playwright | ✅ **2/2** | |
 
 ## Testes unitários (`npm test`) — 57
@@ -66,6 +66,7 @@ Ambiente: build de produção do app + PostgreSQL real com as migrations + **shi
 | Hidratação por copos | mobile |
 | Vilma sem chave de IA responde no modo básico com dados reais (lista pendências conforme o banco, registra água, salva a conversa) | mobile |
 | Exclusão de tarefa exige confirmação | mobile |
+| Meu plano: excluir tarefa e hábito pelo menu ⋮, com confirmação | mobile |
 | Logout e proteção de sessão | mobile |
 | Isolamento entre usuárias pela interface e por chamadas diretas à API | mobile |
 | Offline: alteração entra na fila, aviso exibido e sincroniza ao reconectar | mobile |

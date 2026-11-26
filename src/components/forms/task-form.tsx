@@ -7,6 +7,7 @@ import { taskSchema, zodFieldErrors, type TaskInput } from "@/lib/validation/ent
 import { useCategories, useTable } from "@/lib/data/hooks";
 import { mutate, newId, DataError } from "@/lib/data/store";
 import { useToast } from "@/components/ui/toast";
+import { ConfirmDialog } from "@/components/ui/sheet";
 import type { Task, Subtask } from "@/lib/types";
 
 interface Props { task?: Partial<Task> | null; onDone: () => void; defaults?: Partial<TaskInput> }
@@ -16,6 +17,8 @@ export function TaskForm({ task, onDone, defaults }: Props) {
   const { data: categories } = useCategories("tarefa");
   const { data: projects } = useTable<{ id: string; name: string }>("projects", { order: "name", select: "id,name" });
   const isEdit = !!task?.id;
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [v, setV] = useState({
     title: task?.title ?? defaults?.title ?? "",
     description: task?.description ?? "",
@@ -143,6 +146,31 @@ export function TaskForm({ task, onDone, defaults }: Props) {
       <Field label="Anotações">{(id) => <Textarea id={id} value={v.notes} onChange={set("notes")} rows={2} />}</Field>
       <Field label="Etiquetas" hint="Separe por vírgulas">{(id, d) => <Input id={id} value={v.tags} onChange={set("tags")} aria-describedby={d} />}</Field>
       <Button type="submit" className="w-full" loading={saving}>{isEdit ? "Salvar alterações" : "Criar tarefa"}</Button>
+      {isEdit && (
+        <Button type="button" variant="ghost" className="w-full text-error" icon={<Trash2 className="size-4" />} onClick={() => setConfirmDelete(true)}>Excluir tarefa</Button>
+      )}
+      <ConfirmDialog
+        open={confirmDelete}
+        danger
+        title="Excluir tarefa?"
+        message={`“${task?.title ?? ""}” e suas subtarefas serão excluídas.`}
+        confirmLabel="Excluir"
+        loading={deleting}
+        onCancel={() => setConfirmDelete(false)}
+        onConfirm={async () => {
+          setDeleting(true);
+          try {
+            await mutate({ action: "delete", table: "tasks", id: task!.id! });
+            toast.show("Tarefa excluída.", "success");
+            setConfirmDelete(false);
+            onDone();
+          } catch (e) {
+            toast.show(e instanceof DataError ? e.message : "Não foi possível excluir.", "error");
+          } finally {
+            setDeleting(false);
+          }
+        }}
+      />
     </form>
   );
 }

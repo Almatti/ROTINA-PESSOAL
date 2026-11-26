@@ -127,6 +127,30 @@ test("Vilma sem chave de IA responde no modo básico com dados reais (sem simula
   expect(errors, errors.join("\n")).toEqual([]);
 });
 
+test("Meu plano: excluir tarefa e hábito direto pelo menu ⋮ (com confirmação)", async ({ page }) => {
+  await login(page, email);
+  // o hábito "Meditar" foi criado no teste de hábitos; a tarefa é criada aqui (data padrão: hoje)
+  await page.goto("/tarefas");
+  await page.getByRole("button", { name: /Nova/ }).first().click();
+  const form = page.getByRole("dialog", { name: "Nova tarefa" });
+  await form.getByLabel("Título").fill("Tarefa para apagar");
+  await form.getByRole("button", { name: "Criar tarefa" }).click();
+  await expect.poll(async () => (await rest(page, "tasks?select=id&title=eq.Tarefa%20para%20apagar")).length).toBe(1);
+
+  await page.goto("/meu-plano");
+  await page.getByRole("button", { name: "Editar Tarefa para apagar" }).click();
+  const edit = page.getByRole("dialog", { name: "Editar tarefa" });
+  await edit.getByRole("button", { name: "Excluir tarefa" }).click();
+  await expect(page.getByRole("dialog", { name: "Excluir tarefa?" })).toBeVisible();
+  await page.getByRole("button", { name: "Excluir", exact: true }).click();
+  await expect.poll(async () => (await rest(page, "tasks?select=id&title=eq.Tarefa%20para%20apagar")).length).toBe(0);
+
+  await page.getByRole("button", { name: "Opções de Meditar" }).click();
+  await page.getByRole("dialog", { name: "Editar hábito" }).getByRole("button", { name: "Excluir hábito" }).click();
+  await page.getByRole("button", { name: "Excluir", exact: true }).click();
+  await expect.poll(async () => (await rest(page, "habits?select=id")).length).toBe(0);
+});
+
 test("excluir tarefa exige confirmação", async ({ page }) => {
   await login(page, email);
   await page.goto("/tarefas");

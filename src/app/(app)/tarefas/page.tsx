@@ -1,6 +1,6 @@
 "use client";
 import { useMemo, useState } from "react";
-import { CheckSquare, Search, Plus, List, Columns3, Trash2 } from "lucide-react";
+import { CheckSquare, Search, Plus, List, Columns3 } from "lucide-react";
 import { PageHeader } from "@/components/layout/page-header";
 import { Button, Chip, Input, Select, Segmented, EmptyState, Skeleton, Stat, cn, ErrorNote } from "@/components/ui/primitives";
 import { Sheet, ConfirmDialog } from "@/components/ui/sheet";
@@ -36,7 +36,6 @@ export default function TasksPage() {
   const [sort, setSort] = useState<"padrao" | "prioridade" | "criacao" | "titulo">("padrao");
   const [editing, setEditing] = useState<Task | null>(null);
   const [creating, setCreating] = useState(false);
-  const [deleting, setDeleting] = useState<Task | null>(null);
 
   const all = useMemo(() => tasks ?? [], [tasks]);
   const stats = productivityStats(all, today, (iso) => localDateISO(new Date(iso), tz));
@@ -130,10 +129,9 @@ export default function TasksPage() {
       )}
 
       <Sheet open={creating} onClose={() => setCreating(false)} title="Nova tarefa">{creating && <TaskForm onDone={() => setCreating(false)} defaults={{ due_date: today }} />}</Sheet>
-      <Sheet open={!!editing} onClose={() => setEditing(null)} title="Editar tarefa" footer={editing && <Button variant="ghost" className="w-full text-error" icon={<Trash2 className="size-4" />} onClick={() => { setDeleting(editing); setEditing(null); }}>Excluir tarefa</Button>}>
+      <Sheet open={!!editing} onClose={() => setEditing(null)} title="Editar tarefa">
         {editing && <TaskForm task={editing} onDone={() => setEditing(null)} />}
       </Sheet>
-      <ConfirmDialog open={!!deleting} danger title="Excluir tarefa?" message={`“${deleting?.title}” e suas subtarefas serão excluídas.`} confirmLabel="Excluir" onCancel={() => setDeleting(null)} onConfirm={async () => { await mutate({ action: "delete", table: "tasks", id: deleting!.id }); setDeleting(null); toast.show("Tarefa excluída.", "success"); }} />
     </>
   );
 }

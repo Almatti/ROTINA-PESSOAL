@@ -1,10 +1,11 @@
 "use client";
 import { useState } from "react";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, Archive } from "lucide-react";
 import { Button, Field, Input, Select, Segmented, Toggle } from "@/components/ui/primitives";
 import { habitSchema, zodFieldErrors } from "@/lib/validation/entities";
 import { mutate, newId, DataError } from "@/lib/data/store";
 import { useToast } from "@/components/ui/toast";
+import { ConfirmDialog } from "@/components/ui/sheet";
 import { WEEKDAY_SHORT } from "@/lib/domain/dates";
 import type { Habit } from "@/lib/types";
 import type { HabitFrequency } from "@/lib/domain/habits";
@@ -27,6 +28,7 @@ const COLORS = ["#7451A6", "#88708E", "#5B8DEF", "#2F9E6E", "#E59A4F", "#D96BA0"
 export function HabitForm({ habit, onDone }: { habit?: Habit | null; onDone: () => void }) {
   const toast = useToast();
   const isEdit = !!habit;
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const [v, setV] = useState({
     name: habit?.name ?? "",
     emoji: habit?.emoji ?? "✨",
@@ -150,6 +152,30 @@ export function HabitForm({ habit, onDone }: { habit?: Habit | null; onDone: () 
       </div>
       <Toggle checked={v.reminder} onChange={(b) => setV((s) => ({ ...s, reminder: b }))} label="Lembrete" description="Avisa no horário definido (com notificações ativas)." />
       <Button type="submit" className="w-full" loading={saving}>{isEdit ? "Salvar" : "Criar hábito"}</Button>
+      {isEdit && (
+        <div className="flex gap-2">
+          <Button type="button" variant="ghost" className="flex-1" icon={<Archive className="size-4" />} onClick={async () => { await mutate({ action: "update", table: "habits", id: habit!.id, values: { archived: true } }); toast.show("Hábito arquivado.", "success"); onDone(); }}>Arquivar</Button>
+          <Button type="button" variant="ghost" className="flex-1 text-error" icon={<Trash2 className="size-4" />} onClick={() => setConfirmDelete(true)}>Excluir hábito</Button>
+        </div>
+      )}
+      <ConfirmDialog
+        open={confirmDelete}
+        danger
+        title="Excluir hábito?"
+        message="O hábito e todo o histórico de registros serão apagados definitivamente. Se quiser só pausar, use Arquivar."
+        confirmLabel="Excluir"
+        onCancel={() => setConfirmDelete(false)}
+        onConfirm={async () => {
+          try {
+            await mutate({ action: "delete", table: "habits", id: habit!.id });
+            toast.show("Hábito excluído.", "success");
+            setConfirmDelete(false);
+            onDone();
+          } catch (e) {
+            toast.show(e instanceof DataError ? e.message : "Não foi possível excluir.", "error");
+          }
+        }}
+      />
     </form>
   );
 }

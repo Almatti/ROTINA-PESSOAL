@@ -130,9 +130,7 @@ export default function HabitsPage() {
       )}
 
       <Sheet open={creating} onClose={() => setCreating(false)} title="Novo hábito">{creating && <HabitForm onDone={() => setCreating(false)} />}</Sheet>
-      <Sheet open={!!editing} onClose={() => setEditing(null)} title="Editar hábito" footer={editing && (
-        <Button variant="ghost" className="w-full" icon={<Archive className="size-4" />} onClick={async () => { await mutate({ action: "update", table: "habits", id: editing.id, values: { archived: true } }); setEditing(null); toast.show("Hábito arquivado.", "success"); }}>Arquivar</Button>
-      )}>{editing && <HabitForm habit={editing} onDone={() => setEditing(null)} />}</Sheet>
+      <Sheet open={!!editing} onClose={() => setEditing(null)} title="Editar hábito">{editing && <HabitForm habit={editing} onDone={() => setEditing(null)} />}</Sheet>
       <ConfirmDialog open={!!deleting} danger title="Excluir hábito?" message="O hábito e todo o histórico de registros serão apagados definitivamente." confirmLabel="Excluir" onCancel={() => setDeleting(null)} onConfirm={async () => { await mutate({ action: "delete", table: "habits", id: deleting!.id }); setDeleting(null); toast.show("Hábito excluído.", "success"); }} />
     </>
   );
